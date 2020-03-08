@@ -1,0 +1,39 @@
+# Official language image.
+image: 'rust:latest'
+
+stages:
+  - lint
+  - test
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
+  APT_CACHE_DIR: $CI_PROJECT_DIR/apt
+
+lint:fmt:
+  stage: lint
+  before_script:
+    - rustup component add rustfmt
+  script:
+    - cargo fmt --version
+    - cargo fmt --all -- --check
+
+lint:clippy:
+  stage: lint
+  before_script:
+    - rustup component add clippy
+  script:
+    - cargo clippy --version
+    - cargo clippy -- --deny warnings
+
+test:cargo-test:
+  stage: test
+  script:
+    - rustc --version
+    - cargo --version
+    - cargo test --all --verbose
+
+cache:
+  paths:
+    - apt/
+    - cargo/
+    - target/
