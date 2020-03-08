@@ -1,5 +1,5 @@
 # Official language image.
-image: 'rust:latest'
+image: 'rustlang/rust:nightly'
 
 stages:
   - lint
