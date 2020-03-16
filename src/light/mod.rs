@@ -13,6 +13,9 @@ pub trait SpatialLight: Light {
     fn to_source(&self, origin: &Point) -> (Vector, f32);
 }
 
+pub mod ambient_light;
+pub use ambient_light::*;
+
 pub mod directional_light;
 pub use directional_light::*;
 
