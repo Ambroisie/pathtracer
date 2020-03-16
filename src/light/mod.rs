@@ -12,3 +12,6 @@ pub trait SpatialLight: Light {
     /// Get a unit vector from the origin to the position of the light, and its distance
     fn to_source(&self, origin: &Point) -> (Vector, f32);
 }
+
+pub mod point_light;
+pub use point_light::*;
