@@ -14,3 +14,6 @@ pub trait Shape: Bounded + std::fmt::Debug {
 
 pub mod sphere;
 pub use sphere::*;
+
+pub mod triangle;
+pub use triangle::*;
