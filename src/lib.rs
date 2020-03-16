@@ -6,3 +6,4 @@ pub type Vector = Vector3<f64>;
 
 pub mod core;
 pub mod light;
+pub mod shape;
