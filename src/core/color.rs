@@ -5,9 +5,9 @@ use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign
 )]
 /// A structure to represent operations in the linear RGB colorspace.
 pub struct LinearColor {
-    pub r: f64,
-    pub g: f64,
-    pub b: f64,
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
 }
 
 impl LinearColor {
@@ -19,7 +19,7 @@ impl LinearColor {
         }
     }
 
-    pub fn new(r: f64, g: f64, b: f64) -> Self {
+    pub fn new(r: f32, g: f32, b: f32) -> Self {
         LinearColor { r, g, b }
     }
 }
