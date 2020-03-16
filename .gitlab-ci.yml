@@ -1,5 +1,5 @@
 # Official language image.
-image: 'rustlang/rust:nightly'
+image: 'rust:latest'
 
 stages:
   - lint
@@ -10,6 +10,8 @@ variables:
   APT_CACHE_DIR: $CI_PROJECT_DIR/apt
 
 lint:fmt:
+  # Nightly image for formatting configuration
+  image: 'rustlang/rust:nightly'
   stage: lint
   before_script:
     - rustup component add rustfmt
