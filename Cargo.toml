@@ -10,5 +10,13 @@ description = "A pathtracer written in Rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "pathtracer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pathtracer"
+path = "src/main.rs"
+
 [dependencies]
 bvh = "0.3.2"
