@@ -8,3 +8,4 @@ pub mod core;
 pub mod light;
 pub mod material;
 pub mod shape;
+pub mod texture;
