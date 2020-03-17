@@ -21,3 +21,4 @@ path = "src/main.rs"
 [dependencies]
 bvh = "0.3.2"
 derive_more = "0.99.3"
+image = "0.23.0"
