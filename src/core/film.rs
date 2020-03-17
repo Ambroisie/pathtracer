@@ -26,6 +26,14 @@ impl Film {
         }
     }
 
+    pub fn width(&self) -> u32 {
+        self.x
+    }
+
+    pub fn height(&self) -> u32 {
+        self.y
+    }
+
     pub fn pixel_ratio(&self, x: f32, y: f32) -> (f32, f32) {
         (x / self.x as f32, y / self.y as f32)
     }
