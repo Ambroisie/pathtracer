@@ -6,3 +6,6 @@ pub trait Texture: std::fmt::Debug {
     /// Get the color at a given texel coordinate
     fn texel_color(&self, point: Point2D) -> LinearColor;
 }
+
+pub mod uniform;
+pub use uniform::*;
