@@ -1,11 +1,12 @@
-use crate::light;
+use crate::light::*;
+use std::iter::Iterator;
 
 #[derive(Debug, PartialEq)]
 pub struct LightAggregate {
-    ambient_lights: Vec<light::AmbientLight>,
-    directional_lights: Vec<light::DirectionalLight>,
-    point_lights: Vec<light::PointLight>,
-    spot_lights: Vec<light::SpotLight>,
+    ambients: Vec<AmbientLight>,
+    directionals: Vec<DirectionalLight>,
+    points: Vec<PointLight>,
+    spots: Vec<SpotLight>,
 }
 
 impl LightAggregate {
@@ -14,16 +15,16 @@ impl LightAggregate {
     }
 
     pub fn new(
-        ambient_lights: Vec<light::AmbientLight>,
-        directional_lights: Vec<light::DirectionalLight>,
-        point_lights: Vec<light::PointLight>,
-        spot_lights: Vec<light::SpotLight>,
+        ambients: Vec<AmbientLight>,
+        directionals: Vec<DirectionalLight>,
+        points: Vec<PointLight>,
+        spots: Vec<SpotLight>,
     ) -> Self {
         LightAggregate {
-            ambient_lights,
-            directional_lights,
-            point_lights,
-            spot_lights,
+            ambients,
+            directionals,
+            points,
+            spots,
         }
     }
 }
@@ -44,10 +45,10 @@ mod test {
         assert_eq!(
             lights,
             LightAggregate {
-                ambient_lights: vec![],
-                directional_lights: vec![],
-                point_lights: vec![],
-                spot_lights: vec![],
+                ambients: vec![],
+                directionals: vec![],
+                points: vec![],
+                spots: vec![],
             }
         )
     }
