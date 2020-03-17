@@ -1,6 +1,6 @@
-use super::super::core::LinearColor;
-use super::super::Point;
 use super::Light;
+use crate::core::LinearColor;
+use crate::Point;
 
 /// Represent an ambient lighting which is equal in all points of the scene.
 #[derive(Debug, PartialEq)]

@@ -1,6 +1,6 @@
-use super::super::core::color::LinearColor;
-use super::super::Point2D;
 use super::Material;
+use crate::core::color::LinearColor;
+use crate::Point2D;
 
 /// A material with the same characteristics on all points.
 #[derive(Debug, PartialEq)]

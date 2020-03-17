@@ -1,4 +1,4 @@
-use super::super::{Point, Vector};
+use crate::{Point, Vector};
 
 /// Represent an abstract camera film, to know where each pixel is in space.
 #[derive(Debug, PartialEq)]

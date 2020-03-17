@@ -1,6 +1,6 @@
-use super::super::material::Material;
-use super::super::shape::Shape;
-use super::super::texture::Texture;
+use crate::material::Material;
+use crate::shape::Shape;
+use crate::texture::Texture;
 
 /// An object being rendered in the scene.
 #[derive(Debug)]

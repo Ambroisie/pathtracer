@@ -1,5 +1,5 @@
-use super::super::{Point, Vector};
 use super::film::Film;
+use crate::{Point, Vector};
 
 /// Represent an abstract camera to observe the scene.
 #[derive(Debug, PartialEq)]

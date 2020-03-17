@@ -1,6 +1,6 @@
-use super::super::core::LinearColor;
-use super::super::{Point, Vector};
 use super::{Light, SpatialLight};
+use crate::core::LinearColor;
+use crate::{Point, Vector};
 
 /// Represent a light emanating from a point in space, following the square distance law.
 #[derive(Debug, PartialEq)]

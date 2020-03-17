@@ -1,6 +1,6 @@
-use super::super::core::LinearColor;
-use super::super::{Point, Vector};
 use super::{Light, SpatialLight};
+use crate::core::LinearColor;
+use crate::{Point, Vector};
 
 /// Represent a light emanating from a directed light-source, outputting rays in a cone.
 /// The illumination cone cannot have an FOV over 180°.

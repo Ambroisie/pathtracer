@@ -1,6 +1,6 @@
-use super::super::core::LinearColor;
-use super::super::Point2D;
 use super::Texture;
+use crate::core::LinearColor;
+use crate::Point2D;
 
 /// A texture with the same color on all points.
 #[derive(Debug, PartialEq)]

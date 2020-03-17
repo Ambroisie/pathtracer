@@ -1,5 +1,5 @@
-use super::super::{Point, Point2D, Vector};
 use super::Shape;
+use crate::{Point, Point2D, Vector};
 use bvh::aabb::{Bounded, AABB};
 use bvh::ray::Ray;
 
