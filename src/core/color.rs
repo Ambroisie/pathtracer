@@ -67,6 +67,26 @@ impl DivAssign for LinearColor {
     }
 }
 
+impl From<LinearColor> for image::Rgb<u8> {
+    fn from(color: LinearColor) -> Self {
+        fn clamp(v: f32) -> f32 {
+            // FIXME: use clamp from nightly
+            if v > 1. {
+                1.
+            } else if v < 0. {
+                0.
+            } else {
+                v
+            }
+        };
+        image::Rgb([
+            (clamp(color.r) * 255.) as u8,
+            (clamp(color.g) * 255.) as u8,
+            (clamp(color.b) * 255.) as u8,
+        ])
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
