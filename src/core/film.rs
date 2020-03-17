@@ -26,8 +26,8 @@ impl Film {
         }
     }
 
-    pub fn pixel_ratio(&self, x: u32, y: u32) -> (f32, f32) {
-        (x as f32 / self.x as f32, y as f32 / self.y as f32)
+    pub fn pixel_ratio(&self, x: f32, y: f32) -> (f32, f32) {
+        (x / self.x as f32, y / self.y as f32)
     }
 
     pub fn pixel_at_ratio(&self, x: f32, y: f32) -> Point {
@@ -37,7 +37,7 @@ impl Film {
     }
 
     pub fn pixel_at_coord(&self, x: u32, y: u32) -> Point {
-        let (x, y) = self.pixel_ratio(x, y);
+        let (x, y) = self.pixel_ratio(x as f32, y as f32);
         self.pixel_at_ratio(x, y)
     }
 }
@@ -125,12 +125,12 @@ mod test {
     #[test]
     fn pixel_ratio_works() {
         let film = simple_film();
-        assert_eq!(film.pixel_ratio(0, 0), (0., 0.));
-        assert_eq!(film.pixel_ratio(1080, 1080), (1., 1.));
-        assert_eq!(film.pixel_ratio(1080, 540), (1., 0.5));
-        assert_eq!(film.pixel_ratio(540, 1080), (0.5, 1.));
-        assert_eq!(film.pixel_ratio(1080, 810), (1., 0.75));
-        assert_eq!(film.pixel_ratio(810, 1080), (0.75, 1.))
+        assert_eq!(film.pixel_ratio(0., 0.), (0., 0.));
+        assert_eq!(film.pixel_ratio(1080., 1080.), (1., 1.));
+        assert_eq!(film.pixel_ratio(1080., 540.), (1., 0.5));
+        assert_eq!(film.pixel_ratio(540., 1080.), (0.5, 1.));
+        assert_eq!(film.pixel_ratio(1080., 810.), (1., 0.75));
+        assert_eq!(film.pixel_ratio(810., 1080.), (0.75, 1.))
     }
 
     #[test]
