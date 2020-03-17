@@ -3,3 +3,6 @@ pub use light_aggregate::*;
 
 pub mod object;
 pub use object::*;
+
+pub mod scene;
+pub use scene::*;
