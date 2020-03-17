@@ -11,7 +11,6 @@ pub struct Object<'a> {
 }
 
 impl<'a> Object<'a> {
-    #[allow(dead_code)] // FIXME: remove this when used
     pub fn new(shape: &'a dyn Shape, material: &'a dyn Material, texture: &'a dyn Texture) -> Self {
         Object {
             shape,
