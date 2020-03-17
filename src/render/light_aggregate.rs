@@ -27,6 +27,18 @@ impl LightAggregate {
             spots,
         }
     }
+
+    pub fn ambient_lights_iter(&self) -> impl Iterator<Item = &'_ dyn Light> {
+        self.ambients.iter().map(|l| l as &dyn Light)
+    }
+
+    pub fn spatial_lights_iter(&self) -> impl Iterator<Item = &'_ dyn SpatialLight> {
+        self.directionals
+            .iter()
+            .map(|l| l as &dyn SpatialLight)
+            .chain(self.points.iter().map(|l| l as &dyn SpatialLight))
+            .chain(self.spots.iter().map(|l| l as &dyn SpatialLight))
+    }
 }
 
 impl Default for LightAggregate {
