@@ -1,8 +1,8 @@
-use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Sum};
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 #[derive(
-    Debug, Clone, PartialEq, Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
+    Debug, Clone, PartialEq, Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Sum,
 )]
 /// A structure to represent operations in the linear RGB colorspace.
 pub struct LinearColor {
