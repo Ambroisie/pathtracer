@@ -1,7 +1,7 @@
 use super::{light_aggregate::LightAggregate, object::Object};
 use crate::core::Camera;
 use crate::core::LinearColor;
-use crate::{Point, Vector};
+use crate::{Point, Point2D, Vector};
 use bvh::ray::Ray;
 use image::RgbImage;
 use rand::prelude::thread_rng;
@@ -13,6 +13,7 @@ pub struct Scene<'a> {
     lights: LightAggregate,
     objects: Vec<Object<'a>>,
     aliasing_limit: u32,
+    reflection_limit: u32,
 }
 
 impl<'a> Scene<'a> {
@@ -87,18 +88,50 @@ impl<'a> Scene<'a> {
         shot_obj.map(|obj| (t, obj))
     }
 
-    fn color_at(&self, point: Point, object: &Object, incident_ray: Vector) -> LinearColor {
-        self.illuminate(point, object, incident_ray)
-        // FIXME: add reflection
-    }
-
-    fn illuminate(&self, point: Point, object: &Object, incident_ray: Vector) -> LinearColor {
-        let texel = object.shape.project_texel(&point);
+    fn color_at(
+        &self,
+        point: Point,
+        object: &Object,
+        incident_ray: Vector,
+        reflection_limit: u32,
+    ) -> LinearColor {
         let normal = object.shape.normal(&point);
         let reflected = reflected(incident_ray, normal);
+        let texel = object.shape.project_texel(&point);
+        self.illuminate(point, object, texel, normal, reflected)
+            + self.reflection(point, object, texel, reflected, reflection_limit)
+    }
 
-        self.illuminate_ambient(object.texture.texel_color(texel))
-            + self.illuminate_spatial(point.clone(), object, normal, reflected)
+    fn reflection(
+        &self,
+        point: Point,
+        object: &Object,
+        texel: Point2D,
+        reflected: Vector,
+        reflection_limit: u32,
+    ) -> LinearColor {
+        let reflectivity = object.material.reflectivity(texel);
+        if reflectivity > 1e-5 && reflection_limit > 0 {
+            let reflection_start = point + reflected * 0.001;
+            if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
+                let resulting_position = reflection_start + reflected * t;
+                return self.color_at(resulting_position, obj, reflected, reflection_limit - 1);
+            }
+        };
+        LinearColor::black()
+    }
+
+    fn illuminate(
+        &self,
+        point: Point,
+        object: &Object,
+        texel: Point2D,
+        normal: Vector,
+        reflected: Vector,
+    ) -> LinearColor {
+        let ambient = self.illuminate_ambient(object.texture.texel_color(texel));
+        let spatial = self.illuminate_spatial(point, object, texel, normal, reflected);
+        ambient + spatial
     }
 
     fn illuminate_ambient(&self, color: LinearColor) -> LinearColor {
@@ -112,10 +145,10 @@ impl<'a> Scene<'a> {
         &self,
         point: Point,
         object: &Object,
+        texel: Point2D,
         normal: Vector,
         reflected: Vector,
     ) -> LinearColor {
-        let texel = object.shape.project_texel(&point);
         let k_d = object.material.diffuse(texel);
         let k_s = object.material.specular(texel);
         self.lights
