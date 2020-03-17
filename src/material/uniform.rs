@@ -7,11 +7,16 @@ use crate::Point2D;
 pub struct UniformMaterial {
     diffuse: LinearColor,
     specular: LinearColor,
+    reflectivity: f32,
 }
 
 impl UniformMaterial {
-    pub fn new(diffuse: LinearColor, specular: LinearColor) -> Self {
-        UniformMaterial { diffuse, specular }
+    pub fn new(diffuse: LinearColor, specular: LinearColor, reflectivity: f32) -> Self {
+        UniformMaterial {
+            diffuse,
+            specular,
+            reflectivity,
+        }
     }
 }
 
@@ -23,6 +28,10 @@ impl Material for UniformMaterial {
     fn specular(&self, _: Point2D) -> LinearColor {
         self.specular.clone()
     }
+
+    fn reflectivity(&self, _: Point2D) -> f32 {
+        self.reflectivity
+    }
 }
 
 #[cfg(test)]
@@ -33,14 +42,23 @@ mod test {
     fn new_works() {
         let diffuse = LinearColor::new(0., 0.5, 0.);
         let specular = LinearColor::new(1., 1., 1.);
-        let mat = UniformMaterial::new(diffuse.clone(), specular.clone());
-        assert_eq!(mat, UniformMaterial { diffuse, specular })
+        let reflectivity = 0.5;
+        let mat = UniformMaterial::new(diffuse.clone(), specular.clone(), reflectivity);
+        assert_eq!(
+            mat,
+            UniformMaterial {
+                diffuse,
+                specular,
+                reflectivity
+            }
+        )
     }
 
     fn simple_material() -> impl Material {
         UniformMaterial::new(
             LinearColor::new(0.5, 0.5, 0.5),
             LinearColor::new(1., 1., 1.),
+            0.5,
         )
     }
 
@@ -60,5 +78,11 @@ mod test {
             mat.specular(Point2D::origin()),
             LinearColor::new(1., 1., 1.)
         )
+    }
+
+    #[test]
+    fn reflectivity_works() {
+        let mat = simple_material();
+        assert_eq!(mat.reflectivity(Point2D::origin()), 0.5)
     }
 }

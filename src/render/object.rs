@@ -68,6 +68,9 @@ mod test {
         fn specular(&self, _: Point2D) -> LinearColor {
             todo!()
         }
+        fn reflectivity(&self, _: Point2D) -> f32 {
+            todo!()
+        }
     }
 
     #[derive(Debug)]
