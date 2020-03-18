@@ -22,7 +22,7 @@ impl SpotLight {
     ) -> Self {
         SpotLight {
             position,
-            direction,
+            direction: direction.normalize(),
             cosine_value: (fov_rad / 2.).cos(),
             color,
         }
@@ -35,12 +35,12 @@ impl SpotLight {
         fov_deg: f32,
         color: LinearColor,
     ) -> Self {
-        SpotLight {
+        SpotLight::radians_new(
             position,
             direction,
-            cosine_value: (std::f32::consts::PI * fov_deg / 360.).cos(),
+            std::f32::consts::PI * fov_deg / 180.,
             color,
-        }
+        )
     }
 }
 
