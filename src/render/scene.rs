@@ -44,22 +44,34 @@ impl Scene {
     /// Render the scene into an image.
     pub fn render(&self) -> RgbImage {
         let mut image = RgbImage::new(self.camera.film().width(), self.camera.film().height());
+
+        let total = (image.width() * image.height()) as u64;
+        let pb = indicatif::ProgressBar::new(total);
+        pb.set_draw_delta(total / 10000);
+        pb.set_style(indicatif::ProgressStyle::default_bar().template(
+            "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {percent:>3}%: {pos}/{len} pixels (ETA: {eta})",
+        ));
+
         let pixel_func = if self.aliasing_limit > 0 {
             Self::anti_alias_pixel
         } else {
             Self::pixel
         };
+
         rayon::scope(|s| {
             // FIXME(Bruno): it would go even faster to cut the image in blocks of rows, leading to
             // better cache-line behaviour...
             for (_, row) in image.enumerate_rows_mut() {
                 s.spawn(|_| {
                     for (x, y, pixel) in row {
-                        *pixel = pixel_func(&self, x as f32, y as f32).into()
+                        *pixel = pixel_func(&self, x as f32, y as f32).into();
+                        pb.inc(1);
                     }
                 })
             }
         });
+
+        pb.finish();
         image
     }
 
