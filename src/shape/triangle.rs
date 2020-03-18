@@ -1,11 +1,11 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use bvh::aabb::{Bounded, AABB};
+use bvh::aabb::AABB;
 use bvh::ray::Ray;
 use serde::{Deserialize, Deserializer};
 
 /// Represent a triangle inside the scene.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
     c0: Point,
     c0c1: Vector,
@@ -37,15 +37,6 @@ impl Triangle {
         let u = (dot00 * dot12 - dot01 * dot02) * inv_denom;
         let v = (dot11 * dot02 - dot01 * dot12) * inv_denom;
         Point2D::new(u, v)
-    }
-}
-
-impl Bounded for Triangle {
-    fn aabb(&self) -> AABB {
-        AABB::empty()
-            .grow(&self.c0)
-            .grow(&(self.c0 + self.c0c1))
-            .grow(&(self.c0 + self.c0c2))
     }
 }
 
@@ -87,6 +78,13 @@ impl Shape for Triangle {
 
     fn project_texel(&self, point: &Point) -> Point2D {
         self.barycentric(point)
+    }
+
+    fn aabb(&self) -> AABB {
+        AABB::empty()
+            .grow(&self.c0)
+            .grow(&(self.c0 + self.c0c1))
+            .grow(&(self.c0 + self.c0c2))
     }
 }
 

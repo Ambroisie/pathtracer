@@ -1,11 +1,11 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use bvh::aabb::{Bounded, AABB};
+use bvh::aabb::AABB;
 use bvh::ray::Ray;
 use serde::Deserialize;
 
 /// Represent a sphere shape inside the scene.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Sphere {
     /// The sphere is inverted if it is expected to be seen from the inside.
     inverted: bool,
@@ -32,15 +32,6 @@ impl Sphere {
             radius,
             inverted: true,
         }
-    }
-}
-
-impl Bounded for Sphere {
-    fn aabb(&self) -> AABB {
-        let delt = Vector::new(self.radius, self.radius, self.radius);
-        let min = self.center - delt;
-        let max = self.center + delt;
-        AABB::with_bounds(min, max)
     }
 }
 
@@ -90,6 +81,13 @@ impl Shape for Sphere {
             0.5 + (point.x - self.center.x) / (2. * self.radius),
             0.5 + (point.y - self.center.y) / (2. * self.radius),
         )
+    }
+
+    fn aabb(&self) -> AABB {
+        let delt = Vector::new(self.radius, self.radius, self.radius);
+        let min = self.center - delt;
+        let max = self.center + delt;
+        AABB::with_bounds(min, max)
     }
 }
 

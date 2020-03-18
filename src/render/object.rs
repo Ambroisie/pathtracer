@@ -1,17 +1,17 @@
-use crate::material::Material;
-use crate::shape::Shape;
-use crate::texture::Texture;
+use crate::material::MaterialEnum;
+use crate::shape::ShapeEnum;
+use crate::texture::TextureEnum;
 
 /// An object being rendered in the scene.
-#[derive(Debug)]
-pub struct Object<'a> {
-    pub shape: &'a dyn Shape,
-    pub material: &'a dyn Material,
-    pub texture: &'a dyn Texture,
+#[derive(Debug, PartialEq)]
+pub struct Object {
+    pub shape: ShapeEnum,
+    pub material: MaterialEnum,
+    pub texture: TextureEnum,
 }
 
-impl<'a> Object<'a> {
-    pub fn new(shape: &'a dyn Shape, material: &'a dyn Material, texture: &'a dyn Texture) -> Self {
+impl Object {
+    pub fn new(shape: ShapeEnum, material: MaterialEnum, texture: TextureEnum) -> Self {
         Object {
             shape,
             material,
@@ -23,70 +23,33 @@ impl<'a> Object<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-
     use crate::core::color::LinearColor;
-    use crate::*;
-    use bvh::{
-        aabb::{Bounded, AABB},
-        ray::Ray,
-    };
-
-    /// NOTE(Bruno): those dummy implementations could be used somewhere else ?
-
-    #[derive(Debug)]
-    struct DummyShape {}
-
-    impl Bounded for DummyShape {
-        fn aabb(&self) -> AABB {
-            todo!()
-        }
-    }
-
-    impl Shape for DummyShape {
-        /// Return the distance at which the object intersects with the ray, or None if it does not.
-        fn intersect(&self, _: &Ray) -> Option<f32> {
-            todo!()
-        }
-        /// Return the unit vector corresponding to the normal at this point of the shape.
-        fn normal(&self, _: &Point) -> Vector {
-            todo!()
-        }
-        /// Project the point from the shape's surface to its texel coordinates.
-        fn project_texel(&self, _: &Point) -> Point2D {
-            todo!()
-        }
-    }
-
-    #[derive(Debug)]
-    struct DummyMaterial {}
-
-    impl Material for DummyMaterial {
-        fn diffuse(&self, _: Point2D) -> LinearColor {
-            todo!()
-        }
-        fn specular(&self, _: Point2D) -> LinearColor {
-            todo!()
-        }
-        fn reflectivity(&self, _: Point2D) -> f32 {
-            todo!()
-        }
-    }
-
-    #[derive(Debug)]
-    struct DummyTexture {}
-
-    impl Texture for DummyTexture {
-        fn texel_color(&self, _: Point2D) -> LinearColor {
-            todo!()
-        }
-    }
+    use crate::material::UniformMaterial;
+    use crate::shape::Sphere;
+    use crate::texture::UniformTexture;
+    use crate::Point;
 
     #[test]
     fn new_works() {
-        let shape = DummyShape {};
-        let material = DummyMaterial {};
-        let texture = DummyTexture {};
-        let _ = Object::new(&shape, &material, &texture);
-        // Can't compare the results... Just make sure the new compiles.
+        let shape = Sphere::new(Point::origin(), 1.);
+        let material = UniformMaterial::new(
+            LinearColor::new(0.5, 0.5, 0.5),
+            LinearColor::new(1., 1., 1.),
+            0.5,
+        );
+        let texture = UniformTexture::new(LinearColor::new(0.25, 0.5, 1.));
+        let object = Object::new(
+            shape.clone().into(),
+            material.clone().into(),
+            texture.clone().into(),
+        );
+        assert_eq!(
+            object,
+            Object {
+                shape: shape.into(),
+                material: material.into(),
+                texture: texture.into(),
+            }
+        )
     }
 }

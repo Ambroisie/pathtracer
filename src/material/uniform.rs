@@ -4,7 +4,7 @@ use crate::Point2D;
 use serde::Deserialize;
 
 /// A material with the same characteristics on all points.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct UniformMaterial {
     diffuse: LinearColor,
     specular: LinearColor,

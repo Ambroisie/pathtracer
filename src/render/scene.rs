@@ -1,26 +1,30 @@
 use super::{light_aggregate::LightAggregate, object::Object};
-use crate::core::Camera;
-use crate::core::LinearColor;
-use crate::{Point, Point2D, Vector};
+use crate::{
+    core::{Camera, LinearColor},
+    material::Material,
+    shape::Shape,
+    texture::Texture,
+    {Point, Point2D, Vector},
+};
 use bvh::ray::Ray;
 use image::RgbImage;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
 /// Represent the scene being rendered.
-pub struct Scene<'a> {
+pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
-    objects: Vec<Object<'a>>,
+    objects: Vec<Object>,
     aliasing_limit: u32,
     reflection_limit: u32,
 }
 
-impl<'a> Scene<'a> {
+impl Scene {
     pub fn new(
         camera: Camera,
         lights: LightAggregate,
-        objects: Vec<Object<'a>>,
+        objects: Vec<Object>,
         aliasing_limit: u32,
         reflection_limit: u32,
     ) -> Self {

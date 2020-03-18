@@ -4,7 +4,7 @@ use crate::Point2D;
 use serde::Deserialize;
 
 /// A texture with the same color on all points.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct UniformTexture {
     color: LinearColor,
 }
