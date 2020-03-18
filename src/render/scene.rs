@@ -12,6 +12,7 @@ use rand::prelude::thread_rng;
 use rand::Rng;
 
 /// Represent the scene being rendered.
+#[derive(Debug, PartialEq)]
 pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
