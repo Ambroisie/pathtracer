@@ -1,6 +1,7 @@
 use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
+use serde::{Deserialize, Deserializer};
 
 /// Represent a light emanating from a directed light-source, outputting rays in a cone.
 /// The illumination cone cannot have an FOV over 180°.
@@ -61,6 +62,31 @@ impl SpatialLight for SpotLight {
         let delt = self.position - point;
         let dist = delt.norm();
         (delt.normalize(), dist)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct SerializedSpotLight {
+    position: Point,
+    #[serde(deserialize_with = "crate::serialize::vector_normalizer")]
+    direction: Vector,
+    fov: f32,
+    color: LinearColor,
+}
+
+impl From<SerializedSpotLight> for SpotLight {
+    fn from(light: SerializedSpotLight) -> Self {
+        SpotLight::degrees_new(light.position, light.direction, light.fov, light.color)
+    }
+}
+
+impl<'de> Deserialize<'de> for SpotLight {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let cam: SerializedSpotLight = Deserialize::deserialize(deserializer)?;
+        Ok(cam.into())
     }
 }
 
@@ -156,5 +182,25 @@ mod test {
         let ans = light.to_source(&Point::new(1., 0., 0.));
         let expected = (Vector::new(-1., 0., 0.), 1.);
         assert_eq!(ans, expected);
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = r#"
+            position: [0.0, 0.0, 0.0]
+            direction: [1.0, 0.0, 0.0]
+            fov: 90.0
+            color: {r: 1.0, g: 0.5, b: 0.2}
+        "#;
+        let light: SpotLight = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            light,
+            SpotLight::degrees_new(
+                Point::origin(),
+                Vector::new(1., 0., 0.),
+                90.,
+                LinearColor::new(1., 0.5, 0.2)
+            )
+        )
     }
 }
