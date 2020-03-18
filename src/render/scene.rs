@@ -10,9 +10,10 @@ use bvh::ray::Ray;
 use image::RgbImage;
 use rand::prelude::thread_rng;
 use rand::Rng;
+use serde::Deserialize;
 
 /// Represent the scene being rendered.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
@@ -179,4 +180,16 @@ fn reflected(incident: Vector, normal: Vector) -> Vector {
     let proj = incident.dot(&normal);
     let delt = normal * (proj * 2.);
     incident - delt
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = std::include_str!("../../examples/scene.yaml");
+        let _: Scene = serde_yaml::from_str(yaml).unwrap();
+        // FIXME: actually test the equality ?
+    }
 }
