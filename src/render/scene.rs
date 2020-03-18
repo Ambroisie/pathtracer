@@ -84,6 +84,7 @@ impl Scene {
                 let random_y: f32 = rng.gen();
                 self.pixel(x + random_x, y + random_y)
             })
+            .map(LinearColor::clamp)
             .sum();
         acc / self.aliasing_limit as f32
     }
@@ -158,6 +159,7 @@ impl Scene {
         self.lights
             .ambient_lights_iter()
             .map(|light| color.clone() * light.illumination(&Point::origin()))
+            .map(LinearColor::clamp)
             .sum()
     }
 
@@ -183,6 +185,7 @@ impl Scene {
                 let specular = properties.specular.clone() * reflected.dot(&direction);
                 lum * (diffused + specular)
             })
+            .map(LinearColor::clamp)
             .sum()
     }
 }
