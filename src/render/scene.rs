@@ -49,9 +49,17 @@ impl Scene {
         } else {
             Self::pixel
         };
-        for (x, y, pixel) in image.enumerate_pixels_mut() {
-            *pixel = pixel_func(&self, x as f32, y as f32).into()
-        }
+        rayon::scope(|s| {
+            // FIXME(Bruno): it would go even faster to cut the image in blocks of rows, leading to
+            // better cache-line behaviour...
+            for (_, row) in image.enumerate_rows_mut() {
+                s.spawn(|_| {
+                    for (x, y, pixel) in row {
+                        *pixel = pixel_func(&self, x as f32, y as f32).into()
+                    }
+                })
+            }
+        });
         image
     }
 
