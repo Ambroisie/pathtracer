@@ -1,9 +1,10 @@
 use super::Light;
 use crate::core::LinearColor;
 use crate::Point;
+use serde::Deserialize;
 
 /// Represent an ambient lighting which is equal in all points of the scene.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct AmbientLight {
     color: LinearColor,
 }
@@ -37,5 +38,12 @@ mod test {
         let light = AmbientLight::new(LinearColor::new(1., 1., 1.));
         let lum = light.illumination(&Point::new(1., 1., 1.));
         assert_eq!(lum, LinearColor::new(1., 1., 1.))
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = "color: {r: 1.0, g: 0.5, b: 0.2}";
+        let light: AmbientLight = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(light, AmbientLight::new(LinearColor::new(1., 0.5, 0.2)))
     }
 }
