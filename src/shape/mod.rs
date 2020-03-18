@@ -3,10 +3,13 @@ use bvh::{
     aabb::{Bounded, AABB},
     ray::Ray,
 };
+use serde::Deserialize;
 
 /// All the existing `Shape` implementation.
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
 #[enum_dispatch::enum_dispatch]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub enum ShapeEnum {
     Sphere,
     Triangle,
