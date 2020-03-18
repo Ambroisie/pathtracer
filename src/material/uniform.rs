@@ -1,9 +1,10 @@
 use super::Material;
 use crate::core::color::LinearColor;
 use crate::Point2D;
+use serde::Deserialize;
 
 /// A material with the same characteristics on all points.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct UniformMaterial {
     diffuse: LinearColor,
     specular: LinearColor,
@@ -84,5 +85,23 @@ mod test {
     fn reflectivity_works() {
         let mat = simple_material();
         assert!(mat.reflectivity(Point2D::origin()) - 0.5 < std::f32::EPSILON)
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = r#"
+            diffuse: {r: 1.0, g: 0.5, b: 0.25}
+            specular: {r: 0.25, g: 0.125, b: 0.75}
+            reflectivity: 0.25
+        "#;
+        let material: UniformMaterial = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            material,
+            UniformMaterial::new(
+                LinearColor::new(1., 0.5, 0.25),
+                LinearColor::new(0.25, 0.125, 0.75),
+                0.25
+            )
+        )
     }
 }
