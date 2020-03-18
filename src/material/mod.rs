@@ -1,10 +1,14 @@
 use super::core::color::LinearColor;
 use super::Point2D;
+use serde::Deserialize;
 
 /// All the existing `Material` implementation.
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
 #[enum_dispatch::enum_dispatch]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub enum MaterialEnum {
+    #[serde(rename = "uniform")]
     UniformMaterial,
 }
 
