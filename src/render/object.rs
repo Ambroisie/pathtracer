@@ -1,6 +1,8 @@
 use crate::material::MaterialEnum;
-use crate::shape::ShapeEnum;
+use crate::shape::{Shape, ShapeEnum};
 use crate::texture::TextureEnum;
+use bvh::aabb::{Bounded, AABB};
+use bvh::bounding_hierarchy::BHShape;
 use serde::Deserialize;
 
 /// An object being rendered in the scene.
@@ -9,6 +11,8 @@ pub struct Object {
     pub shape: ShapeEnum,
     pub material: MaterialEnum,
     pub texture: TextureEnum,
+    #[serde(skip_deserializing)]
+    index: usize,
 }
 
 impl Object {
@@ -17,7 +21,23 @@ impl Object {
             shape,
             material,
             texture,
+            index: 0,
         }
+    }
+}
+
+impl Bounded for Object {
+    fn aabb(&self) -> AABB {
+        self.shape.aabb()
+    }
+}
+impl BHShape for Object {
+    fn set_bh_node_index(&mut self, index: usize) {
+        self.index = index
+    }
+
+    fn bh_node_index(&self) -> usize {
+        self.index
     }
 }
 
@@ -56,6 +76,7 @@ mod test {
                 shape: shape.into(),
                 material: material.into(),
                 texture: texture.into(),
+                index: 0,
             }
         )
     }
