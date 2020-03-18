@@ -2,9 +2,10 @@ use super::Shape;
 use crate::{Point, Point2D, Vector};
 use bvh::aabb::{Bounded, AABB};
 use bvh::ray::Ray;
+use serde::Deserialize;
 
 /// Represent a sphere shape inside the scene.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Sphere {
     /// The sphere is inverted if it is expected to be seen from the inside.
     inverted: bool,
@@ -161,5 +162,16 @@ mod test {
         let projection = sphere.project_texel(&Point::new(1., 0., 1.));
         assert!((projection.x - 1.).abs() < 1e-5);
         assert!((projection.y - 0.5).abs() < 1e-5)
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = r#"
+            inverted: false
+            center: [0.5, 1.0, 2.0]
+            radius: 2.5
+        "#;
+        let sphere: Sphere = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(sphere, Sphere::new(Point::new(0.5, 1.0, 2.0), 2.5))
     }
 }
