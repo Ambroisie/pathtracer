@@ -1,9 +1,10 @@
 use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
+use serde::Deserialize;
 
 /// Represent a light emanating from a point in space, following the square distance law.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct PointLight {
     position: Point,
     color: LinearColor,
@@ -62,5 +63,15 @@ mod test {
         let ans = light.to_source(&Point::new(1., 0., 0.));
         let expected = (Vector::new(-1., 0., 0.), 1.);
         assert_eq!(ans, expected);
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = "{position: [1.0, 1.0, 1.0], color: {r: 1.0, g: 0.5, b: 0.2}}";
+        let light: PointLight = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            light,
+            PointLight::new(Point::new(1., 1., 1.), LinearColor::new(1., 0.5, 0.2))
+        )
     }
 }
