@@ -1,10 +1,10 @@
 use super::{light_aggregate::LightAggregate, object::Object};
 use crate::{
     core::{Camera, LinearColor},
-    material::Material,
+    material::{LightProperties, Material},
     shape::Shape,
     texture::Texture,
-    {Point, Point2D, Vector},
+    {Point, Vector},
 };
 use bvh::{bvh::BVH, ray::Ray};
 use image::RgbImage;
@@ -114,24 +114,28 @@ impl Scene {
         let normal = object.shape.normal(&point);
         let reflected = reflected(incident_ray, normal);
         let texel = object.shape.project_texel(&point);
-        self.illuminate(point, object, texel, normal, reflected)
-            + self.reflection(point, object, texel, reflected, reflection_limit)
+
+        let properties = object.material.properties(texel);
+        let object_color = object.texture.texel_color(texel);
+
+        self.illuminate(point, object_color, &properties, normal, reflected)
+            + self.reflection(point, &properties, reflected, reflection_limit)
     }
 
     fn reflection(
         &self,
         point: Point,
-        object: &Object,
-        texel: Point2D,
+        properties: &LightProperties,
         reflected: Vector,
         reflection_limit: u32,
     ) -> LinearColor {
-        let reflectivity = object.material.reflectivity(texel);
+        let reflectivity = properties.reflectivity;
         if reflectivity > 1e-5 && reflection_limit > 0 {
             let reflection_start = point + reflected * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
                 let resulting_position = reflection_start + reflected * t;
-                return self.color_at(resulting_position, obj, reflected, reflection_limit - 1);
+                let color = self.color_at(resulting_position, obj, reflected, reflection_limit - 1);
+                return color * reflectivity;
             }
         };
         LinearColor::black()
@@ -140,13 +144,13 @@ impl Scene {
     fn illuminate(
         &self,
         point: Point,
-        object: &Object,
-        texel: Point2D,
+        object_color: LinearColor,
+        properties: &LightProperties,
         normal: Vector,
         reflected: Vector,
     ) -> LinearColor {
-        let ambient = self.illuminate_ambient(object.texture.texel_color(texel));
-        let spatial = self.illuminate_spatial(point, object, texel, normal, reflected);
+        let ambient = self.illuminate_ambient(object_color);
+        let spatial = self.illuminate_spatial(point, properties, normal, reflected);
         ambient + spatial
     }
 
@@ -160,13 +164,10 @@ impl Scene {
     fn illuminate_spatial(
         &self,
         point: Point,
-        object: &Object,
-        texel: Point2D,
+        properties: &LightProperties,
         normal: Vector,
         reflected: Vector,
     ) -> LinearColor {
-        let k_d = object.material.diffuse(texel);
-        let k_s = object.material.specular(texel);
         self.lights
             .spatial_lights_iter()
             .map(|light| {
@@ -178,8 +179,8 @@ impl Scene {
                     _ => {}
                 }
                 let lum = light.illumination(&point);
-                let diffused = k_d.clone() * normal.dot(&direction);
-                let specular = k_s.clone() * reflected.dot(&direction);
+                let diffused = properties.diffuse.clone() * normal.dot(&direction);
+                let specular = properties.specular.clone() * reflected.dot(&direction);
                 lum * (diffused + specular)
             })
             .sum()

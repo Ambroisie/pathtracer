@@ -2,6 +2,17 @@ use super::core::color::LinearColor;
 use super::Point2D;
 use serde::Deserialize;
 
+/// A structure holding all the physical proprerties relating to light at a point.
+#[derive(Debug, PartialEq, Clone)]
+pub struct LightProperties {
+    /// The diffuse component.
+    pub diffuse: LinearColor,
+    /// The specular component,
+    pub specular: LinearColor,
+    /// The reflectivity coefficient,
+    pub reflectivity: f32,
+}
+
 /// All the existing `Material` implementation.
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
@@ -15,12 +26,8 @@ pub enum MaterialEnum {
 /// Represent the physical light properties of an object in the scene;
 #[enum_dispatch::enum_dispatch(MaterialEnum)]
 pub trait Material: std::fmt::Debug {
-    /// The diffuse component on a texel point.
-    fn diffuse(&self, point: Point2D) -> LinearColor;
-    /// The specular component on a texel point.
-    fn specular(&self, point: Point2D) -> LinearColor;
-    /// The reflectivity coefficient on a texel point.
-    fn reflectivity(&self, point: Point2D) -> f32;
+    /// Get the physical properties at a point.
+    fn properties(&self, point: Point2D) -> LightProperties;
 }
 
 pub mod uniform;

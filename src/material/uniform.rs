@@ -1,3 +1,4 @@
+use super::LightProperties;
 use super::Material;
 use crate::core::color::LinearColor;
 use crate::Point2D;
@@ -22,16 +23,12 @@ impl UniformMaterial {
 }
 
 impl Material for UniformMaterial {
-    fn diffuse(&self, _: Point2D) -> LinearColor {
-        self.diffuse.clone()
-    }
-
-    fn specular(&self, _: Point2D) -> LinearColor {
-        self.specular.clone()
-    }
-
-    fn reflectivity(&self, _: Point2D) -> f32 {
-        self.reflectivity
+    fn properties(&self, _: Point2D) -> LightProperties {
+        LightProperties {
+            diffuse: self.diffuse.clone(),
+            specular: self.specular.clone(),
+            reflectivity: self.reflectivity,
+        }
     }
 }
 
@@ -67,7 +64,7 @@ mod test {
     fn diffuse_works() {
         let mat = simple_material();
         assert_eq!(
-            mat.diffuse(Point2D::origin()),
+            mat.properties(Point2D::origin()).diffuse,
             LinearColor::new(0.5, 0.5, 0.5)
         )
     }
@@ -76,7 +73,7 @@ mod test {
     fn specular_works() {
         let mat = simple_material();
         assert_eq!(
-            mat.specular(Point2D::origin()),
+            mat.properties(Point2D::origin()).specular,
             LinearColor::new(1., 1., 1.)
         )
     }
@@ -84,7 +81,7 @@ mod test {
     #[test]
     fn reflectivity_works() {
         let mat = simple_material();
-        assert!(mat.reflectivity(Point2D::origin()) - 0.5 < std::f32::EPSILON)
+        assert!(mat.properties(Point2D::origin()).reflectivity - 0.5 < std::f32::EPSILON)
     }
 
     #[test]
