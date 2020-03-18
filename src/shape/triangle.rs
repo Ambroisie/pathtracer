@@ -2,6 +2,7 @@ use super::Shape;
 use crate::{Point, Point2D, Vector};
 use bvh::aabb::{Bounded, AABB};
 use bvh::ray::Ray;
+use serde::{Deserialize, Deserializer};
 
 /// Represent a triangle inside the scene.
 #[derive(Debug, PartialEq)]
@@ -86,6 +87,31 @@ impl Shape for Triangle {
 
     fn project_texel(&self, point: &Point) -> Point2D {
         self.barycentric(point)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct SerializedTriangle {
+    corners: [Point; 3],
+}
+
+impl From<SerializedTriangle> for Triangle {
+    fn from(triangle: SerializedTriangle) -> Self {
+        Triangle::new(
+            triangle.corners[0],
+            triangle.corners[1],
+            triangle.corners[2],
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for Triangle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let cam: SerializedTriangle = Deserialize::deserialize(deserializer)?;
+        Ok(cam.into())
     }
 }
 
@@ -179,5 +205,24 @@ mod test {
         // The centroid is at a third of the length of the height of the triangle
         let ans = triangle.project_texel(&Point::origin());
         assert!((ans - Point2D::new(0.5, 0.5)).norm() < 1e-5);
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = r#"
+            corners:
+              - [0.0, 0.0, 0.0]
+              - [0.0, 1.0, 1.0]
+              - [0.0, 1.0, 0.0]
+        "#;
+        let triangle: Triangle = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            triangle,
+            Triangle::new(
+                Point::origin(),
+                Point::new(0., 1., 1.),
+                Point::new(0., 1., 0.)
+            )
+        )
     }
 }
