@@ -10,10 +10,10 @@ use bvh::ray::Ray;
 use image::RgbImage;
 use rand::prelude::thread_rng;
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 /// Represent the scene being rendered.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq)]
 pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
@@ -180,6 +180,37 @@ fn reflected(incident: Vector, normal: Vector) -> Vector {
     let proj = incident.dot(&normal);
     let delt = normal * (proj * 2.);
     incident - delt
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+struct SerializedScene {
+    camera: Camera,
+    lights: LightAggregate,
+    objects: Vec<Object>,
+    aliasing_limit: u32,
+    reflection_limit: u32,
+}
+
+impl From<SerializedScene> for Scene {
+    fn from(scene: SerializedScene) -> Self {
+        Scene::new(
+            scene.camera,
+            scene.lights,
+            scene.objects,
+            scene.aliasing_limit,
+            scene.reflection_limit,
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for Scene {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let cam: SerializedScene = Deserialize::deserialize(deserializer)?;
+        Ok(cam.into())
+    }
 }
 
 #[cfg(test)]
