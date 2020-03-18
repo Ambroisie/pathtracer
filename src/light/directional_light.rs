@@ -1,10 +1,12 @@
 use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
+use serde::Deserialize;
 
 /// Represent a light emanating from a far away source, with parallel rays on all points.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct DirectionalLight {
+    #[serde(deserialize_with = "crate::serialize::vector_normalizer")]
     direction: Vector,
     color: LinearColor,
 }
@@ -62,5 +64,15 @@ mod test {
         let ans = light.to_source(&Point::new(1., 0., 0.));
         let expected = (Vector::new(-1., 0., 0.), std::f32::INFINITY);
         assert_eq!(ans, expected)
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = "{direction: [1.0, 0.0, 0.0], color: {r: 1.0, g: 0.5, b: 0.2}}";
+        let light: DirectionalLight = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            light,
+            DirectionalLight::new(Vector::new(1., 0., 0.), LinearColor::new(1., 0.5, 0.2))
+        )
     }
 }
