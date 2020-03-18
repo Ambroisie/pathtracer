@@ -21,8 +21,8 @@ impl Film {
             x,
             y,
             center,
-            ratio_up: up.normalize() * x_size,
-            ratio_right: right.normalize() * y_size,
+            ratio_up: up.normalize() * y_size,
+            ratio_right: right.normalize() * x_size,
         }
     }
 
@@ -92,8 +92,8 @@ mod test {
                 x: 1080,
                 y: 1440,
                 center: Point::origin(),
-                ratio_up: Vector::new(0., 0.75, 0.),
-                ratio_right: Vector::new(0., 0., 1.),
+                ratio_up: Vector::new(0., 1., 0.),
+                ratio_right: Vector::new(0., 0., 0.75),
             }
         )
     }
@@ -113,8 +113,8 @@ mod test {
                 x: 1080,
                 y: 540,
                 center: Point::origin(),
-                ratio_up: Vector::new(0., 1., 0.),
-                ratio_right: Vector::new(0., 0., 0.5),
+                ratio_up: Vector::new(0., 0.5, 0.),
+                ratio_right: Vector::new(0., 0., 1.),
             }
         )
     }
