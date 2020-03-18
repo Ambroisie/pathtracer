@@ -1,8 +1,21 @@
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Sum};
+use serde::Deserialize;
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 
 #[derive(
-    Debug, Clone, PartialEq, Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Sum,
+    Debug,
+    Clone,
+    PartialEq,
+    Add,
+    AddAssign,
+    Div,
+    DivAssign,
+    Mul,
+    MulAssign,
+    Sub,
+    SubAssign,
+    Sum,
+    Deserialize,
 )]
 /// A structure to represent operations in the linear RGB colorspace.
 pub struct LinearColor {
@@ -284,5 +297,19 @@ mod test {
                 b: 0.,
             }
         );
+    }
+
+    #[test]
+    fn deserialization_works() {
+        let yaml = "{r: 1.0, g: 0.5, b: 0.2}";
+        let ans: LinearColor = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            ans,
+            LinearColor {
+                r: 1.0,
+                g: 0.5,
+                b: 0.2
+            }
+        )
     }
 }
