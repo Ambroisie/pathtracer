@@ -6,18 +6,18 @@ use crate::{
     texture::Texture,
     {Point, Point2D, Vector},
 };
-use bvh::ray::Ray;
+use bvh::{bvh::BVH, ray::Ray};
 use image::RgbImage;
 use rand::prelude::thread_rng;
 use rand::Rng;
 use serde::{Deserialize, Deserializer};
 
 /// Represent the scene being rendered.
-#[derive(Debug, PartialEq)]
 pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
     objects: Vec<Object>,
+    bvh: BVH,
     aliasing_limit: u32,
     reflection_limit: u32,
 }
@@ -26,14 +26,16 @@ impl Scene {
     pub fn new(
         camera: Camera,
         lights: LightAggregate,
-        objects: Vec<Object>,
+        mut objects: Vec<Object>,
         aliasing_limit: u32,
         reflection_limit: u32,
     ) -> Self {
+        let bvh = BVH::build(&mut objects);
         Scene {
             camera,
             lights,
             objects,
+            bvh,
             aliasing_limit,
             reflection_limit,
         }
@@ -82,7 +84,7 @@ impl Scene {
         // NOTE(Bruno): should be written using iterators
         let mut shot_obj: Option<&Object> = None;
         let mut t = std::f32::INFINITY;
-        for object in self.objects.iter() {
+        for object in self.bvh.traverse(&ray, &self.objects).iter() {
             match object.shape.intersect(&ray) {
                 Some(dist) if dist < t => {
                     t = dist;
