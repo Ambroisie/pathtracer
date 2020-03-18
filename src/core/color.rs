@@ -36,6 +36,20 @@ impl LinearColor {
     pub fn new(r: f32, g: f32, b: f32) -> Self {
         LinearColor { r, g, b }
     }
+
+    #[must_use]
+    pub fn clamp(self) -> Self {
+        fn clamp(v: f32) -> f32 {
+            if v > 1. {
+                1.
+            } else if v < 0. {
+                0.
+            } else {
+                v
+            }
+        };
+        LinearColor::new(clamp(self.r), clamp(self.g), clamp(self.b))
+    }
 }
 
 impl Default for LinearColor {
@@ -81,21 +95,12 @@ impl DivAssign for LinearColor {
 }
 
 impl From<LinearColor> for image::Rgb<u8> {
-    fn from(color: LinearColor) -> Self {
-        fn clamp(v: f32) -> f32 {
-            // FIXME: use clamp from nightly
-            if v > 1. {
-                1.
-            } else if v < 0. {
-                0.
-            } else {
-                v
-            }
-        };
+    fn from(mut color: LinearColor) -> Self {
+        color = color.clamp();
         image::Rgb([
-            (clamp(color.r) * 255.) as u8,
-            (clamp(color.g) * 255.) as u8,
-            (clamp(color.b) * 255.) as u8,
+            (color.r * 255.) as u8,
+            (color.g * 255.) as u8,
+            (color.b * 255.) as u8,
         ])
     }
 }
@@ -297,6 +302,12 @@ mod test {
                 b: 0.,
             }
         );
+    }
+
+    #[test]
+    fn clamp_works() {
+        let color = LinearColor::new(1.5, -1., 0.5);
+        assert_eq!(color.clamp(), LinearColor::new(1., 0., 0.5))
     }
 
     #[test]
