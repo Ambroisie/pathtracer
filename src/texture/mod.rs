@@ -1,10 +1,14 @@
 use super::core::LinearColor;
 use super::Point2D;
+use serde::Deserialize;
 
 /// All the existing `Texture` implementation.
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
 #[enum_dispatch::enum_dispatch]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub enum TextureEnum {
+    #[serde(rename = "uniform")]
     UniformTexture,
 }
 
