@@ -83,6 +83,6 @@ mod test {
     #[test]
     fn reflectivity_works() {
         let mat = simple_material();
-        assert_eq!(mat.reflectivity(Point2D::origin()), 0.5)
+        assert!(mat.reflectivity(Point2D::origin()) - 0.5 < std::f32::EPSILON)
     }
 }
