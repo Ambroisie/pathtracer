@@ -1,0 +1,41 @@
+aliasing_limit: 10
+reflection_limit: 5
+
+camera:
+  origin: [-1.0, 0.0, 0.0]
+  forward: [ 1.0, 0.0, 0.0]
+  up: [0.0, 1.0, 0.0]
+  fov: 90.0
+  distance_to_image: 1.0
+  x: 1080
+  y: 1080
+
+lights:
+  ambients:
+    - color: {r: 1.0, g: 0.5, b: 0.2}
+  directionals:
+    - direction: [1.0, 0.0, 0.0]
+      color: {r: 1.0, g: 0.5, b: 0.2}
+  points:
+    - position: [1.0, 1.0, 1.0]
+      color: {r: 1.0, g: 0.5, b: 0.2}
+  spots:
+    - position: [0.0, 0.0, 0.0]
+      direction: [1.0, 0.0, 0.0]
+      fov: 90.0
+      color: {r: 1.0, g: 0.5, b: 0.2}
+
+objects:
+  - shape:
+      type: sphere
+      inverted: false
+      center: [5., 0.0, 0.0]
+      radius: 1.0
+    material:
+      type: uniform
+      diffuse: {r: 0.5, g: 0.5, b: 0.5}
+      specular: {r: 1., g: 1., b: 1.}
+      reflectivity: 0.5
+    texture:
+      type: uniform
+      color: {r: 0.25, g: 0.5, b: 1.}
