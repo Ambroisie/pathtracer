@@ -45,6 +45,7 @@ impl BHShape for Object {
 mod test {
     use super::*;
     use crate::core::color::LinearColor;
+    use crate::core::LightProperties;
     use crate::material::UniformMaterial;
     use crate::shape::Sphere;
     use crate::texture::UniformTexture;
@@ -52,11 +53,11 @@ mod test {
 
     fn simple_object() -> Object {
         let shape = Sphere::new(Point::new(5., 0., 0.), 1.);
-        let material = UniformMaterial::new(
+        let material = UniformMaterial::new(LightProperties::new(
             LinearColor::new(0.5, 0.5, 0.5),
             LinearColor::new(1., 1., 1.),
-            0.5,
-        );
+            None,
+        ));
         let texture = UniformTexture::new(LinearColor::new(0.25, 0.5, 1.));
         Object::new(shape.into(), material.into(), texture.into())
     }
@@ -64,11 +65,11 @@ mod test {
     #[test]
     fn new_works() {
         let shape = Sphere::new(Point::new(5., 0., 0.), 1.);
-        let material = UniformMaterial::new(
+        let material = UniformMaterial::new(LightProperties::new(
             LinearColor::new(0.5, 0.5, 0.5),
             LinearColor::new(1., 1., 1.),
-            0.5,
-        );
+            None,
+        ));
         let texture = UniformTexture::new(LinearColor::new(0.25, 0.5, 1.));
         assert_eq!(
             simple_object(),
@@ -93,7 +94,6 @@ mod test {
               type: uniform
               diffuse: {r: 0.5, g: 0.5, b: 0.5}
               specular: {r: 1., g: 1., b: 1.}
-              reflectivity: 0.5
             texture:
               type: uniform
               color: {r: 0.25, g: 0.5, b: 1.}

@@ -1,7 +1,7 @@
 use super::{light_aggregate::LightAggregate, object::Object};
 use crate::{
-    core::{Camera, LinearColor},
-    material::{LightProperties, Material},
+    core::{Camera, LightProperties, LinearColor, ReflTransEnum},
+    material::Material,
     shape::Shape,
     texture::Texture,
     {Point, Vector},
@@ -20,6 +20,7 @@ pub struct Scene {
     bvh: BVH,
     aliasing_limit: u32,
     reflection_limit: u32,
+    diffraction_index: f32,
 }
 
 impl Scene {
@@ -29,6 +30,7 @@ impl Scene {
         mut objects: Vec<Object>,
         aliasing_limit: u32,
         reflection_limit: u32,
+        diffraction_index: f32,
     ) -> Self {
         let bvh = BVH::build(&mut objects);
         Scene {
@@ -38,6 +40,7 @@ impl Scene {
             bvh,
             aliasing_limit,
             reflection_limit,
+            diffraction_index,
         }
     }
 
@@ -82,7 +85,13 @@ impl Scene {
         let direction = (pixel - self.camera.origin()).normalize();
         self.cast_ray(Ray::new(pixel, direction))
             .map_or_else(LinearColor::black, |(t, obj)| {
-                self.color_at(pixel + direction * t, obj, direction, self.reflection_limit)
+                self.color_at(
+                    pixel + direction * t,
+                    obj,
+                    direction,
+                    self.reflection_limit,
+                    self.diffraction_index,
+                )
             })
     }
 
@@ -105,6 +114,7 @@ impl Scene {
         // NOTE(Bruno): should be written using iterators
         let mut shot_obj: Option<&Object> = None;
         let mut t = std::f32::INFINITY;
+        // NOTE: we don't care about all objects... Only the closest one
         for object in self.bvh.traverse(&ray, &self.objects).iter() {
             match object.shape.intersect(&ray) {
                 Some(dist) if dist < t => {
@@ -123,31 +133,82 @@ impl Scene {
         object: &Object,
         incident_ray: Vector,
         reflection_limit: u32,
+        diffraction_index: f32,
     ) -> LinearColor {
-        let normal = object.shape.normal(&point);
-        let reflected = reflected(incident_ray, normal);
         let texel = object.shape.project_texel(&point);
-
         let properties = object.material.properties(texel);
         let object_color = object.texture.texel_color(texel);
 
-        self.illuminate(point, object_color, &properties, normal, reflected)
-            + self.reflection(point, &properties, reflected, reflection_limit)
+        let normal = object.shape.normal(&point);
+        let reflected = reflected(incident_ray, normal);
+
+        let lighting = self.illuminate(point, object_color, &properties, normal, reflected);
+        match properties.refl_trans {
+            None => lighting,
+            Some(ReflTransEnum::Transparency { coef, index }) => {
+                // Calculate the refracted ray, if it was refracted
+                refracted(incident_ray, normal, diffraction_index, index).map_or_else(
+                    // Total reflection
+                    || self.reflection(point, 1., reflected, reflection_limit, diffraction_index),
+                    // Refraction
+                    |r| {
+                        self.refraction(point, coef, r, reflection_limit, index)
+                            + lighting * (1. - coef)
+                    },
+                )
+            }
+            Some(ReflTransEnum::Reflectivity { coef }) => {
+                self.reflection(point, coef, reflected, reflection_limit, diffraction_index)
+                    + lighting * (1. - coef)
+            }
+        }
+    }
+
+    fn refraction(
+        &self,
+        point: Point,
+        transparency: f32,
+        refracted: Vector,
+        reflection_limit: u32,
+        new_index: f32,
+    ) -> LinearColor {
+        if transparency > 1e-5 && reflection_limit > 0 {
+            let refraction_start = point + refracted * 0.001;
+            if let Some((t, obj)) = self.cast_ray(Ray::new(refraction_start, refracted)) {
+                let resulting_position = refraction_start + refracted * t;
+                let refracted = self.color_at(
+                    resulting_position,
+                    obj,
+                    refracted,
+                    reflection_limit - 1,
+                    new_index,
+                );
+                return refracted * transparency;
+            }
+        }
+        LinearColor::black()
     }
 
     fn reflection(
         &self,
         point: Point,
-        properties: &LightProperties,
+        reflectivity: f32,
         reflected: Vector,
         reflection_limit: u32,
+        diffraction_index: f32,
     ) -> LinearColor {
-        let reflectivity = properties.reflectivity;
+        // FIXME: use fresnel reflection too
         if reflectivity > 1e-5 && reflection_limit > 0 {
             let reflection_start = point + reflected * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
                 let resulting_position = reflection_start + reflected * t;
-                let color = self.color_at(resulting_position, obj, reflected, reflection_limit - 1);
+                let color = self.color_at(
+                    resulting_position,
+                    obj,
+                    reflected,
+                    reflection_limit - 1,
+                    diffraction_index,
+                );
                 return color * reflectivity;
             }
         };
@@ -208,6 +269,18 @@ fn reflected(incident: Vector, normal: Vector) -> Vector {
     incident - delt
 }
 
+fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<Vector> {
+    let cos = incident.dot(&normal);
+    let normal = if cos < 0. { normal } else { -normal };
+    let eta = n_1 / n_2;
+    let k = 1. - eta * eta * (1. - cos * cos);
+    if k < 0. {
+        None
+    } else {
+        Some(eta * incident + (eta * cos.abs() - f32::sqrt(k)) * normal)
+    }
+}
+
 #[derive(Debug, PartialEq, Deserialize)]
 struct SerializedScene {
     camera: Camera,
@@ -219,6 +292,8 @@ struct SerializedScene {
     aliasing_limit: u32,
     #[serde(default)]
     reflection_limit: u32,
+    #[serde(default = "crate::serialize::default_identity")]
+    starting_diffraction: f32,
 }
 
 impl From<SerializedScene> for Scene {
@@ -229,6 +304,7 @@ impl From<SerializedScene> for Scene {
             scene.objects,
             scene.aliasing_limit,
             scene.reflection_limit,
+            scene.starting_diffraction,
         )
     }
 }

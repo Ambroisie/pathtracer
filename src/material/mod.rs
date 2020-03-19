@@ -1,17 +1,6 @@
-use super::core::color::LinearColor;
+use super::core::LightProperties;
 use super::Point2D;
 use serde::Deserialize;
-
-/// A structure holding all the physical proprerties relating to light at a point.
-#[derive(Debug, PartialEq, Clone)]
-pub struct LightProperties {
-    /// The diffuse component.
-    pub diffuse: LinearColor,
-    /// The specular component,
-    pub specular: LinearColor,
-    /// The reflectivity coefficient,
-    pub reflectivity: f32,
-}
 
 /// All the existing `Material` implementation.
 #[serde(tag = "type")]

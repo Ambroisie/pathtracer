@@ -35,7 +35,6 @@ objects:
       type: uniform
       diffuse: {r: 0.5, g: 0.5, b: 0.5}
       specular: {r: 1., g: 1., b: 1.}
-      reflectivity: 0.5
     texture:
       type: uniform
       color: {r: 0.25, g: 0.5, b: 1.}

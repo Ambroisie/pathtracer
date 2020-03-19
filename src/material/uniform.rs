@@ -1,88 +1,53 @@
-use super::LightProperties;
 use super::Material;
-use crate::core::color::LinearColor;
+use crate::core::LightProperties;
 use crate::Point2D;
 use serde::Deserialize;
 
 /// A material with the same characteristics on all points.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct UniformMaterial {
-    diffuse: LinearColor,
-    specular: LinearColor,
-    #[serde(default)]
-    reflectivity: f32,
+    #[serde(flatten)]
+    properties: LightProperties,
 }
 
 impl UniformMaterial {
-    pub fn new(diffuse: LinearColor, specular: LinearColor, reflectivity: f32) -> Self {
-        UniformMaterial {
-            diffuse,
-            specular,
-            reflectivity,
-        }
+    pub fn new(properties: LightProperties) -> Self {
+        UniformMaterial { properties }
     }
 }
 
 impl Material for UniformMaterial {
     fn properties(&self, _: Point2D) -> LightProperties {
-        LightProperties {
-            diffuse: self.diffuse.clone(),
-            specular: self.specular.clone(),
-            reflectivity: self.reflectivity,
-        }
+        self.properties.clone()
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::core::color::LinearColor;
+    use crate::core::ReflTransEnum;
 
     #[test]
     fn new_works() {
-        let diffuse = LinearColor::new(0., 0.5, 0.);
-        let specular = LinearColor::new(1., 1., 1.);
-        let reflectivity = 0.5;
-        let mat = UniformMaterial::new(diffuse.clone(), specular.clone(), reflectivity);
-        assert_eq!(
-            mat,
-            UniformMaterial {
-                diffuse,
-                specular,
-                reflectivity
-            }
-        )
+        let properties = LightProperties {
+            diffuse: LinearColor::new(0., 0.5, 0.),
+            specular: LinearColor::new(1., 1., 1.),
+            refl_trans: None,
+        };
+        let mat = UniformMaterial::new(properties.clone());
+        assert_eq!(mat, UniformMaterial { properties })
     }
 
-    fn simple_material() -> impl Material {
-        UniformMaterial::new(
-            LinearColor::new(0.5, 0.5, 0.5),
+    #[test]
+    fn properties_works() {
+        let properties = LightProperties::new(
+            LinearColor::new(0., 0.5, 0.),
             LinearColor::new(1., 1., 1.),
-            0.5,
-        )
-    }
-
-    #[test]
-    fn diffuse_works() {
-        let mat = simple_material();
-        assert_eq!(
-            mat.properties(Point2D::origin()).diffuse,
-            LinearColor::new(0.5, 0.5, 0.5)
-        )
-    }
-
-    #[test]
-    fn specular_works() {
-        let mat = simple_material();
-        assert_eq!(
-            mat.properties(Point2D::origin()).specular,
-            LinearColor::new(1., 1., 1.)
-        )
-    }
-
-    #[test]
-    fn reflectivity_works() {
-        let mat = simple_material();
-        assert!(mat.properties(Point2D::origin()).reflectivity - 0.5 < std::f32::EPSILON)
+            None,
+        );
+        let mat = UniformMaterial::new(properties.clone());
+        assert_eq!(mat.properties(Point2D::origin()), properties)
     }
 
     #[test]
@@ -95,11 +60,11 @@ mod test {
         let material: UniformMaterial = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(
             material,
-            UniformMaterial::new(
+            UniformMaterial::new(LightProperties::new(
                 LinearColor::new(1., 0.5, 0.25),
                 LinearColor::new(0.25, 0.125, 0.75),
-                0.25
-            )
+                Some(ReflTransEnum::Reflectivity { coef: 0.25 })
+            ))
         )
     }
 }

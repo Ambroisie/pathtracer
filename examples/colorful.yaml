@@ -47,6 +47,9 @@ objects:
         r: 1.0
         g: 1.0
         b: 1.0
+      # Optional fields (go together)
+      #transparency: 0.5
+      #index: 1.5
     texture:
       type: uniform
       color:
@@ -71,7 +74,7 @@ objects:
         g: 1.0
         b: 1.0
       # Optional field
-      # reflectivity: 0.0
+      #reflectivity: 0.0
     texture:
       type: uniform
       color:
