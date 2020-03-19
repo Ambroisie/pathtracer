@@ -8,6 +8,7 @@ use serde::Deserialize;
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Sphere {
     /// The sphere is inverted if it is expected to be seen from the inside.
+    #[serde(default)]
     inverted: bool,
     /// The center of the sphere in space.
     center: Point,
