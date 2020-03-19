@@ -1,4 +1,6 @@
-aliasing_limit: 0 #10
+# Optional field
+aliasing_limit: 10
+# Optional field
 reflection_limit: 5
 
 camera:
@@ -10,6 +12,7 @@ camera:
   x: 1920
   y: 1080
 
+# Optional field, each key itself being optional
 lights:
   ambients:
     - color: {r: 0.05, g: 0.05, b: 0.05}
@@ -32,7 +35,6 @@ lights:
 objects:
   - shape:
       type: sphere
-      inverted: false
       center: [4.5, 0.0, 0.0]
       radius: 0.4
     material:
@@ -45,7 +47,6 @@ objects:
         r: 1.0
         g: 1.0
         b: 1.0
-      reflectivity: 0.0
     texture:
       type: uniform
       color:
@@ -55,7 +56,8 @@ objects:
 
   - shape:
       type: sphere
-      inverted: false
+      # Optional field
+      # inverted: false
       center: [10.0, 0.0, 0.0]
       radius: 5.0
     material:
@@ -68,7 +70,8 @@ objects:
         r: 1.0
         g: 1.0
         b: 1.0
-      reflectivity: 0.0
+      # Optional field
+      # reflectivity: 0.0
     texture:
       type: uniform
       color:
