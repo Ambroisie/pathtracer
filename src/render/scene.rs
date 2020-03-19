@@ -61,14 +61,19 @@ impl Scene {
             Self::pixel
         };
 
+        let mut rows: Vec<_> = image.enumerate_rows_mut().collect();
         rayon::scope(|s| {
             // FIXME(Bruno): it would go even faster to cut the image in blocks of rows, leading to
             // better cache-line behaviour...
-            for (_, row) in image.enumerate_rows_mut() {
+            let chunk_size = self.camera.film().height() as usize / rayon::current_num_threads();
+            // `chunks_size + 1` to have exactly num_threads tasks spawned, even with rounding
+            for chunk in rows.chunks_mut(chunk_size + 1) {
                 s.spawn(|_| {
-                    for (x, y, pixel) in row {
-                        *pixel = pixel_func(&self, x as f32, y as f32).into();
-                        pb.inc(1);
+                    for (_, row) in chunk {
+                        for (x, y, pixel) in row {
+                            *pixel = pixel_func(&self, x as f32, y as f32).into();
+                            pb.inc(1);
+                        }
                     }
                 })
             }
