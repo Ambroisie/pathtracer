@@ -162,9 +162,9 @@ impl Scene {
         normal: Vector,
         reflected: Vector,
     ) -> LinearColor {
-        let ambient = self.illuminate_ambient(object_color);
+        let ambient = self.illuminate_ambient(object_color.clone());
         let spatial = self.illuminate_spatial(point, properties, normal, reflected);
-        ambient + spatial
+        ambient + object_color * spatial
     }
 
     fn illuminate_ambient(&self, color: LinearColor) -> LinearColor {
