@@ -4,9 +4,13 @@ use std::iter::Iterator;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct LightAggregate {
+    #[serde(default)]
     ambients: Vec<AmbientLight>,
+    #[serde(default)]
     directionals: Vec<DirectionalLight>,
+    #[serde(default)]
     points: Vec<PointLight>,
+    #[serde(default)]
     spots: Vec<SpotLight>,
 }
 
