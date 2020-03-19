@@ -211,9 +211,13 @@ fn reflected(incident: Vector, normal: Vector) -> Vector {
 #[derive(Debug, PartialEq, Deserialize)]
 struct SerializedScene {
     camera: Camera,
+    #[serde(default)]
     lights: LightAggregate,
+    #[serde(default)]
     objects: Vec<Object>,
+    #[serde(default)]
     aliasing_limit: u32,
+    #[serde(default)]
     reflection_limit: u32,
 }
 
