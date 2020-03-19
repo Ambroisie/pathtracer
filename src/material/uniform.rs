@@ -9,6 +9,7 @@ use serde::Deserialize;
 pub struct UniformMaterial {
     diffuse: LinearColor,
     specular: LinearColor,
+    #[serde(default)]
     reflectivity: f32,
 }
 
