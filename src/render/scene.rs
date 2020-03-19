@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use super::{light_aggregate::LightAggregate, object::Object};
 use crate::{
     core::{Camera, LightProperties, LinearColor, ReflTransEnum},
@@ -111,20 +113,13 @@ impl Scene {
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {
-        // NOTE(Bruno): should be written using iterators
-        let mut shot_obj: Option<&Object> = None;
-        let mut t = std::f32::INFINITY;
-        // NOTE: we don't care about all objects... Only the closest one
-        for object in self.bvh.traverse(&ray, &self.objects).iter() {
-            match object.shape.intersect(&ray) {
-                Some(dist) if dist < t => {
-                    t = dist;
-                    shot_obj = Some(&object);
-                }
-                _ => {}
-            }
-        }
-        shot_obj.map(|obj| (t, obj))
+        self.bvh
+            .traverse(&ray, &self.objects)
+            .iter()
+            .filter_map(|obj| obj.shape.intersect(&ray).map(|distance| (distance, *obj)))
+            .min_by(|(dist_a, _), (dist_b, _)| {
+                dist_a.partial_cmp(dist_b).unwrap_or(Ordering::Equal)
+            })
     }
 
     fn color_at(
