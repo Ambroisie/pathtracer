@@ -1,3 +1,5 @@
+//! Camera related logic
+
 use super::film::Film;
 use crate::{Point, Vector};
 use serde::{Deserialize, Deserializer};
@@ -12,6 +14,24 @@ pub struct Camera {
 }
 
 impl Camera {
+    /// Creates a new `Camera`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::Camera;
+    /// use pathtracer::{Point, Vector};
+    ///
+    /// let cam = Camera::new(
+    ///     Point::new(-1., 0., 0.),
+    ///     Vector::new(1., 0., 0.),
+    ///     Vector::new(0., 1., 0.),
+    ///     2. * f32::atan(1.), /* 90° in radian */
+    ///     1.,
+    ///     1080,
+    ///     1080,
+    /// );
+    /// ```
     pub fn new(
         origin: Point,
         forward: Vector,
@@ -28,12 +48,70 @@ impl Camera {
         Camera { origin, film }
     }
 
+    /// Get the `Camera`'s [`Film`].
+    ///
+    /// [`Film`]: ../film/struct.Film.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::{Camera, Film};
+    /// #
+    /// let cam = Camera::default();
+    /// let film: &Film = cam.film();
+    /// ```
     pub fn film(&self) -> &Film {
         &self.film
     }
 
+    /// Get the `Camera`'s `Point` of origin.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::Camera;
+    /// # use pathtracer::Point;
+    /// #
+    /// let cam = Camera::default();
+    /// let origin: &Point = cam.origin();
+    /// ```
     pub fn origin(&self) -> &Point {
         &self.origin
+    }
+}
+
+impl Default for Camera {
+    /// Returns a `Camera` with a 1080x1080 `Film`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::Camera;
+    /// use pathtracer::{Point, Vector};
+    ///
+    /// let default = Camera::default();
+    /// let new = Camera::new(
+    ///     Point::new(0., 0., 0.),
+    ///     Vector::new(1., 0., 0.),
+    ///     Vector::new(0., 1., 0.),
+    ///     2. * f32::atan(1.), /* 90° in radian */
+    ///     1.,
+    ///     1080,
+    ///     1080,
+    /// );
+    ///
+    /// assert_eq!(default, new);
+    /// ```
+    fn default() -> Self {
+        Self::new(
+            Point::origin(),
+            Vector::new(1., 0., 0.),
+            Vector::new(0., 1., 0.),
+            2. * f32::atan(1.), /* 90° in radian */
+            1.,
+            1080,
+            1080,
+        )
     }
 }
 
