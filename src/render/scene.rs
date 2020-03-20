@@ -171,34 +171,30 @@ impl Scene {
         let object_color = object.texture.texel_color(texel);
 
         let normal = object.shape.normal(&point);
-        let reflected = reflected(incident_ray, normal);
+        let reflected_ray = reflected(incident_ray, normal);
 
-        let lighting = self.illuminate(point, object_color, &properties, normal, reflected);
-        match properties.refl_trans {
-            None => lighting,
-            Some(ReflTransEnum::Transparency { coef, index }) => {
+        let lighting = self.illuminate(point, object_color, &properties, normal, reflected_ray);
+        if properties.refl_trans.is_none() {
+            // Avoid calculating reflection when not needed
+            return lighting;
+        }
+        let reflected = self.reflection(point, reflected_ray, reflection_limit, diffraction_index);
+        // We can unwrap safely thanks to the check for None before
+        match properties.refl_trans.unwrap() {
+            ReflTransEnum::Transparency { coef, index } => {
                 // Calculate the refracted ray, if it was refracted
                 refracted(incident_ray, normal, diffraction_index, index).map_or_else(
                     // Total reflection
-                    || self.reflection(point, reflected, reflection_limit, diffraction_index),
+                    || reflected.clone(),
                     // Refraction (refracted ray, amount of *reflection*)
                     |(r, refl_t)| {
-                        let refr_light = self.refraction(point, coef, r, reflection_limit, index)
-                            * (1. - refl_t)
-                            + self.reflection(
-                                point,
-                                reflected,
-                                reflection_limit,
-                                diffraction_index,
-                            ) * refl_t;
+                        let refracted = self.refraction(point, coef, r, reflection_limit, index);
+                        let refr_light = refracted * (1. - refl_t) + reflected.clone() * refl_t;
                         refr_light * coef + lighting * (1. - coef)
                     },
                 )
             }
-            Some(ReflTransEnum::Reflectivity { coef }) => {
-                self.reflection(point, reflected, reflection_limit, diffraction_index) * coef
-                    + lighting * (1. - coef)
-            }
+            ReflTransEnum::Reflectivity { coef } => reflected * coef + lighting * (1. - coef),
         }
     }
 
