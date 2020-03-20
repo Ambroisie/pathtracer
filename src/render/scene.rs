@@ -180,14 +180,13 @@ impl Scene {
                 // Calculate the refracted ray, if it was refracted
                 refracted(incident_ray, normal, diffraction_index, index).map_or_else(
                     // Total reflection
-                    || self.reflection(point, 1., reflected, reflection_limit, diffraction_index),
+                    || self.reflection(point, reflected, reflection_limit, diffraction_index),
                     // Refraction (refracted ray, amount of *reflection*)
                     |(r, refl_t)| {
                         let refr_light = self.refraction(point, coef, r, reflection_limit, index)
                             * (1. - refl_t)
                             + self.reflection(
                                 point,
-                                refl_t,
                                 reflected,
                                 reflection_limit,
                                 diffraction_index,
@@ -197,7 +196,7 @@ impl Scene {
                 )
             }
             Some(ReflTransEnum::Reflectivity { coef }) => {
-                self.reflection(point, coef, reflected, reflection_limit, diffraction_index)
+                self.reflection(point, reflected, reflection_limit, diffraction_index) * coef
                     + lighting * (1. - coef)
             }
         }
@@ -231,12 +230,11 @@ impl Scene {
     fn reflection(
         &self,
         point: Point,
-        reflectivity: f32,
         reflected: Vector,
         reflection_limit: u32,
         diffraction_index: f32,
     ) -> LinearColor {
-        if reflectivity > 1e-5 && reflection_limit > 0 {
+        if reflection_limit > 0 {
             let reflection_start = point + reflected * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
                 let resulting_position = reflection_start + reflected * t;
@@ -247,7 +245,7 @@ impl Scene {
                     reflection_limit - 1,
                     diffraction_index,
                 );
-                return color * reflectivity;
+                return color;
             }
         };
         LinearColor::black()
