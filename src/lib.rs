@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use bvh::nalgebra::{Point2, Point3, Vector3};
 
 pub type Point2D = Point2<f32>;
