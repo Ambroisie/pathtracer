@@ -121,6 +121,7 @@ impl Scene {
         let (x, y) = self.camera.film().pixel_ratio(x, y);
         let pixel = self.camera.film().pixel_at_ratio(x, y);
         let direction = (pixel - self.camera.origin()).normalize();
+        let indices = RefractionInfo::with_index(self.diffraction_index);
         self.cast_ray(Ray::new(pixel, direction))
             .map_or_else(LinearColor::black, |(t, obj)| {
                 self.color_at(
@@ -128,7 +129,7 @@ impl Scene {
                     obj,
                     direction,
                     self.reflection_limit,
-                    self.diffraction_index,
+                    indices,
                 )
             })
     }
@@ -164,7 +165,7 @@ impl Scene {
         object: &Object,
         incident_ray: Vector,
         reflection_limit: u32,
-        diffraction_index: f32,
+        mut indices: RefractionInfo,
     ) -> LinearColor {
         let texel = object.shape.project_texel(&point);
         let properties = object.material.properties(texel);
@@ -178,17 +179,17 @@ impl Scene {
             // Avoid calculating reflection when not needed
             return lighting;
         }
-        let reflected = self.reflection(point, reflected_ray, reflection_limit, diffraction_index);
+        let reflected = self.reflection(point, reflected_ray, reflection_limit, indices.clone());
         // We can unwrap safely thanks to the check for None before
         match properties.refl_trans.unwrap() {
             ReflTransEnum::Transparency { coef, index } => {
-                // Calculate the refracted ray, if it was refracted
-                refracted(incident_ray, normal, diffraction_index, index).map_or_else(
+                // Calculate the refracted ray, if it was refracted, and mutate indices accordingly
+                refracted(incident_ray, normal, &mut indices, index).map_or_else(
                     // Total reflection
                     || reflected.clone(),
                     // Refraction (refracted ray, amount of *reflection*)
                     |(r, refl_t)| {
-                        let refracted = self.refraction(point, coef, r, reflection_limit, index);
+                        let refracted = self.refraction(point, coef, r, reflection_limit, indices);
                         let refr_light = refracted * (1. - refl_t) + reflected.clone() * refl_t;
                         refr_light * coef + lighting * (1. - coef)
                     },
@@ -204,7 +205,7 @@ impl Scene {
         transparency: f32,
         refracted: Vector,
         reflection_limit: u32,
-        new_index: f32,
+        indices: RefractionInfo,
     ) -> LinearColor {
         if transparency > 1e-5 && reflection_limit > 0 {
             let refraction_start = point + refracted * 0.001;
@@ -215,7 +216,7 @@ impl Scene {
                     obj,
                     refracted,
                     reflection_limit - 1,
-                    new_index,
+                    indices,
                 );
                 return refracted * transparency;
             }
@@ -228,7 +229,7 @@ impl Scene {
         point: Point,
         reflected: Vector,
         reflection_limit: u32,
-        diffraction_index: f32,
+        indices: RefractionInfo,
     ) -> LinearColor {
         if reflection_limit > 0 {
             let reflection_start = point + reflected * 0.001;
@@ -239,7 +240,7 @@ impl Scene {
                     obj,
                     reflected,
                     reflection_limit - 1,
-                    diffraction_index,
+                    indices,
                 );
                 return color;
             }
@@ -302,9 +303,24 @@ fn reflected(incident: Vector, normal: Vector) -> Vector {
 }
 
 /// Returns None if the ray was totally reflected, Some(refracted_ray, reflected_amount) if not
-fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<(Vector, f32)> {
+/// Adds an element to the top of indices that should be removed
+fn refracted(
+    incident: Vector,
+    normal: Vector,
+    indices: &mut RefractionInfo,
+    new_index: f32,
+) -> Option<(Vector, f32)> {
     let cos1 = incident.dot(&normal);
-    let normal = if cos1 < 0. { normal } else { -normal };
+    let normal = if cos1 < 0. {
+        // Entering object, change the medium
+        indices.enter_medium(new_index); // The old index is now in old_index
+        normal
+    } else {
+        // Exiting object, exit the medium
+        indices.exit_medium(); // We swapped the indices
+        -normal
+    };
+    let (n_1, n_2) = (indices.old_index, indices.new_index);
     let eta = n_1 / n_2;
     let k = 1. - eta * eta * (1. - cos1 * cos1);
     if k < 0. {
@@ -318,6 +334,32 @@ fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<(Ve
     let refl_t = (f_r * f_r + f_t * f_t) / 2.;
     //Some((refracted, 0.))
     Some((refracted.normalize(), refl_t))
+}
+
+#[derive(Debug, PartialEq, Clone)]
+struct RefractionInfo {
+    pub old_index: f32,
+    pub new_index: f32,
+}
+
+impl RefractionInfo {
+    pub fn with_index(index: f32) -> Self {
+        RefractionInfo {
+            old_index: index,
+            new_index: index,
+        }
+    }
+
+    pub fn enter_medium(&mut self, index: f32) {
+        *self = RefractionInfo {
+            old_index: self.new_index,
+            new_index: index,
+        }
+    }
+
+    pub fn exit_medium(&mut self) {
+        std::mem::swap(&mut self.old_index, &mut self.new_index)
+    }
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
