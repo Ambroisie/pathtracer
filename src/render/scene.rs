@@ -311,8 +311,8 @@ fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<(Ve
         return None;
     }
     let cos1 = cos1.abs();
-    let refracted = eta * incident + (eta * cos1 - f32::sqrt(k)) * normal;
-    let cos2 = -refracted.dot(&normal); // Take the negation because we're on the other side
+    let cos2 = k.sqrt();
+    let refracted = eta * incident + (eta * cos1 - cos2) * normal;
     let f_r = (n_2 * cos1 - n_1 * cos2) / (n_2 * cos1 + n_1 * cos2);
     let f_t = (n_1 * cos2 - n_2 * cos1) / (n_1 * cos2 + n_2 * cos1);
     let refl_t = (f_r * f_r + f_t * f_t) / 2.;
