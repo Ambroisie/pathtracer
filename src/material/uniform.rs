@@ -11,6 +11,22 @@ pub struct UniformMaterial {
 }
 
 impl UniformMaterial {
+    /// Creates a new `UniformMaterial`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::material::UniformMaterial;
+    /// # use pathtracer::core::{LightProperties, LinearColor};
+    /// #
+    /// let uni_mat = UniformMaterial::new(
+    ///     LightProperties::new(
+    ///         LinearColor::new(1.0, 0.0, 0.0), // diffuse component
+    ///         LinearColor::new(0.0, 0.0, 0.0), // specular component
+    ///         None,
+    ///     ),
+    /// );
+    /// ```
     pub fn new(properties: LightProperties) -> Self {
         UniformMaterial { properties }
     }
