@@ -1,3 +1,5 @@
+//! Various shape implementations
+
 use super::{Point, Point2D, Vector};
 use bvh::{
     aabb::{Bounded, AABB},
@@ -8,6 +10,7 @@ use serde::Deserialize;
 /// All the existing `Shape` implementation.
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
+#[allow(missing_docs)]
 #[enum_dispatch::enum_dispatch]
 #[derive(Debug, PartialEq, Deserialize)]
 pub enum ShapeEnum {
