@@ -298,7 +298,7 @@ impl Scene {
 fn reflected(incident: Vector, normal: Vector) -> Vector {
     let proj = incident.dot(&normal);
     let delt = normal * (proj * 2.);
-    incident - delt
+    (incident - delt).normalize()
 }
 
 /// Returns None if the ray was totally reflected, Some(refracted_ray, reflected_amount) if not
@@ -317,7 +317,7 @@ fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<(Ve
     let f_t = (n_1 * cos2 - n_2 * cos1) / (n_1 * cos2 + n_2 * cos1);
     let refl_t = (f_r * f_r + f_t * f_t) / 2.;
     //Some((refracted, 0.))
-    Some((refracted, refl_t))
+    Some((refracted.normalize(), refl_t))
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
