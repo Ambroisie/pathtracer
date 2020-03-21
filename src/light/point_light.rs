@@ -11,6 +11,20 @@ pub struct PointLight {
 }
 
 impl PointLight {
+    /// Creates a new `PointLight`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::light::PointLight;
+    /// # use pathtracer::core::color::LinearColor;
+    /// # use pathtracer::Point;
+    /// #
+    /// let dir_light = PointLight::new(
+    ///     Point::origin(),
+    ///     LinearColor::new(1.0, 0.0, 1.0),
+    /// );
+    /// ```
     pub fn new(position: Point, color: LinearColor) -> Self {
         PointLight { position, color }
     }

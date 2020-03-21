@@ -10,6 +10,16 @@ pub struct AmbientLight {
 }
 
 impl AmbientLight {
+    /// Creates a new `AmbientLight`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::light::AmbientLight;
+    /// # use pathtracer::core::color::LinearColor;
+    /// #
+    /// let amb_light = AmbientLight::new(LinearColor::new(1.0, 0.0, 1.0));
+    /// ```
     pub fn new(color: LinearColor) -> Self {
         AmbientLight { color }
     }

@@ -1,3 +1,5 @@
+//! Various light implementations
+
 use super::core::LinearColor;
 use super::{Point, Vector};
 

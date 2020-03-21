@@ -12,6 +12,20 @@ pub struct DirectionalLight {
 }
 
 impl DirectionalLight {
+    /// Creates a new `DirectionalLight`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::light::DirectionalLight;
+    /// # use pathtracer::core::color::LinearColor;
+    /// # use pathtracer::Vector;
+    /// #
+    /// let dir_light = DirectionalLight::new(
+    ///     Vector::new(1.0, 0.0, 0.0),
+    ///     LinearColor::new(1.0, 0.0, 1.0),
+    /// );
+    /// ```
     pub fn new(direction: Vector, color: LinearColor) -> Self {
         DirectionalLight {
             direction: direction.normalize(),
