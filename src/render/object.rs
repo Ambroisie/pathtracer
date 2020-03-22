@@ -1,3 +1,5 @@
+//! Logic for the scene objects
+
 use crate::material::MaterialEnum;
 use crate::shape::{Shape, ShapeEnum};
 use crate::texture::TextureEnum;
@@ -8,14 +10,42 @@ use serde::Deserialize;
 /// An object being rendered in the scene.
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Object {
+    /// The `Object`'s physical shape
     pub shape: ShapeEnum,
+    /// The `Object`'s material
     pub material: MaterialEnum,
+    /// The `Object`'s texture
     pub texture: TextureEnum,
     #[serde(skip_deserializing)]
+    /// Index inside the `BVH`
     index: usize,
 }
 
 impl Object {
+    /// Creates a new `Object`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::{LightProperties, LinearColor};
+    /// # use pathtracer::material::UniformMaterial;
+    /// # use pathtracer::render::Object;
+    /// # use pathtracer::shape::Sphere;
+    /// # use pathtracer::texture::UniformTexture;
+    /// # use pathtracer::Point;
+    /// #
+    /// let obj = Object::new(
+    ///     Sphere::new(Point::origin(), 1.0).into(),
+    ///     UniformMaterial::new(
+    ///         LightProperties::new(
+    ///             LinearColor::new(1.0, 0.0, 0.0), // diffuse component
+    ///             LinearColor::new(0.0, 0.0, 0.0), // specular component
+    ///             None,
+    ///         ),
+    ///     ).into(),
+    ///     UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
+    /// );
+    /// ```
     pub fn new(shape: ShapeEnum, material: MaterialEnum, texture: TextureEnum) -> Self {
         Object {
             shape,
