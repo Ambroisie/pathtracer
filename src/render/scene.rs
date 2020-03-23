@@ -1,3 +1,5 @@
+//! Scene rendering logic
+
 use std::cmp::Ordering;
 
 use super::{light_aggregate::LightAggregate, object::Object};
@@ -26,6 +28,39 @@ pub struct Scene {
 }
 
 impl Scene {
+    /// Creates a new `Scene`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::{Camera, LightProperties, LinearColor};
+    /// # use pathtracer::material::UniformMaterial;
+    /// # use pathtracer::render::{LightAggregate, Object, Scene};
+    /// # use pathtracer::shape::Sphere;
+    /// # use pathtracer::texture::UniformTexture;
+    /// # use pathtracer::Point;
+    /// #
+    /// let scene = Scene::new(
+    ///     Camera::default(),
+    ///     LightAggregate::empty(),
+    ///     vec![
+    ///         Object::new(
+    ///             Sphere::new(Point::origin(), 1.0).into(),
+    ///             UniformMaterial::new(
+    ///                 LightProperties::new(
+    ///                     LinearColor::new(1.0, 0.0, 0.0), // diffuse component
+    ///                     LinearColor::new(0.0, 0.0, 0.0), // specular component
+    ///                     None,
+    ///                 ),
+    ///             ).into(),
+    ///             UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
+    ///         ),
+    ///     ],
+    ///     5,   // aliasing limit
+    ///     3,   // reflection recursion limit
+    ///     0.0, // diffraction index
+    /// );
+    /// ```
     pub fn new(
         camera: Camera,
         lights: LightAggregate,
@@ -34,6 +69,7 @@ impl Scene {
         reflection_limit: u32,
         diffraction_index: f32,
     ) -> Self {
+        // NOTE(Antoine): fun fact: BVH::build stack overflows when given an empty slice :)
         let bvh = BVH::build(&mut objects);
         Scene {
             camera,
@@ -337,5 +373,21 @@ mod test {
         let yaml = std::include_str!("../../examples/scene.yaml");
         let _: Scene = serde_yaml::from_str(yaml).unwrap();
         // FIXME: actually test the equality ?
+    }
+
+    #[test]
+    #[ignore] // stack overflow because of BVH :(
+    fn bvh_fails() {
+        use crate::core::Camera;
+        use crate::render::{LightAggregate, Scene};
+
+        let _scene = Scene::new(
+            Camera::default(),
+            LightAggregate::empty(),
+            Vec::new(), // Objects list
+            5,          // aliasing limit
+            3,          // reflection recursion limit
+            0.0,        // diffraction index
+        );
     }
 }

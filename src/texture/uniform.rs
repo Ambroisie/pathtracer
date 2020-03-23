@@ -10,6 +10,16 @@ pub struct UniformTexture {
 }
 
 impl UniformTexture {
+    /// Creates a new `UniformTexture`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::texture::UniformTexture;
+    /// # use pathtracer::core::LinearColor;
+    /// #
+    /// let uni_text = UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5));
+    /// ```
     pub fn new(color: LinearColor) -> Self {
         UniformTexture { color }
     }

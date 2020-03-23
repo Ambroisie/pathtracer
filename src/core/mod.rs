@@ -1,3 +1,5 @@
+//! Core pathtracing pipeline elements
+
 pub mod camera;
 pub use camera::*;
 

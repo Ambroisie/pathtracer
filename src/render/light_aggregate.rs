@@ -1,8 +1,11 @@
+//! Utility module to compute overall illumination
+
 use crate::light::*;
 use serde::Deserialize;
 use std::iter::Iterator;
 
 #[derive(Debug, PartialEq, Deserialize)]
+/// A struct centralizing the light computation logic.
 pub struct LightAggregate {
     #[serde(default)]
     ambients: Vec<AmbientLight>,
@@ -15,10 +18,39 @@ pub struct LightAggregate {
 }
 
 impl LightAggregate {
+    /// Creates a new empty `LightAggregate`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::render::LightAggregate;
+    /// #
+    /// let la = LightAggregate::empty();
+    /// assert_eq!(la.ambient_lights_iter().count(), 0);
+    /// assert_eq!(la.spatial_lights_iter().count(), 0);
+    /// ```
     pub fn empty() -> Self {
         LightAggregate::new(vec![], vec![], vec![], vec![])
     }
 
+    /// Creates a new `LightAggregate` from `Vec`s of [`Light`]s.
+    ///
+    /// [`Light`]: ../../light/trait.Light.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::render::LightAggregate;
+    /// #
+    /// let la = LightAggregate::new(
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Vec::new(),
+    /// );
+    /// assert_eq!(la.ambient_lights_iter().count(), 0);
+    /// assert_eq!(la.spatial_lights_iter().count(), 0);
+    /// ```
     pub fn new(
         ambients: Vec<AmbientLight>,
         directionals: Vec<DirectionalLight>,
@@ -33,10 +65,21 @@ impl LightAggregate {
         }
     }
 
+    /// Returns an iterator over the aggregate's [`AmbientLight`]s.
+    ///
+    /// [`AmbientLight`]: ../../light/ambient_light/struct.AmbientLight.html
     pub fn ambient_lights_iter(&self) -> impl Iterator<Item = &'_ dyn Light> {
         self.ambients.iter().map(|l| l as &dyn Light)
     }
 
+    /// Returns an iterator over the aggregate's [`SpatialLight`]s.
+    ///
+    /// This simply merges iterators over [`DirectionalLight`], [`PointLight`] and [`SpotLight`].
+    ///
+    /// [`SpatialLight`]: ../../light/trait.SpatialLight.html
+    /// [`DirectionalLight`]: ../../light/directional_light/struct.DirectionalLight.html
+    /// [`PointLight`]: ../../light/point_light/struct.PointLight.html
+    /// [`Spotight`]: ../../light/spot_light/struct.Spotight.html
     pub fn spatial_lights_iter(&self) -> impl Iterator<Item = &'_ dyn SpatialLight> {
         self.directionals
             .iter()

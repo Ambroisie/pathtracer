@@ -1,3 +1,5 @@
+//! Color definition and operations
+
 use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Sum};
 use serde::Deserialize;
 use std::ops::{Div, DivAssign, Mul, MulAssign};
@@ -19,12 +21,34 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 )]
 /// A structure to represent operations in the linear RGB colorspace.
 pub struct LinearColor {
+    /// The color's red component
     pub r: f32,
+    /// The color's green component
     pub g: f32,
+    /// The color's blue component
     pub b: f32,
 }
 
 impl LinearColor {
+    /// Creates the color black.
+    ///
+    /// All 3 components are set to 0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::LinearColor;
+    /// #
+    /// let black = LinearColor::black();
+    /// assert_eq!(
+    ///     black,
+    ///     LinearColor {
+    ///         r: 0.,
+    ///         g: 0.,
+    ///         b: 0.
+    ///     }
+    /// );
+    /// ```
     pub fn black() -> Self {
         LinearColor {
             r: 0.,
@@ -33,11 +57,30 @@ impl LinearColor {
         }
     }
 
+    /// Creates a new `Color`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::LinearColor;
+    /// #
+    /// let color = LinearColor::new(1.0, 0.0, 0.0); // bright red!
+    /// ```
     pub fn new(r: f32, g: f32, b: f32) -> Self {
         LinearColor { r, g, b }
     }
 
     #[must_use]
+    /// Clamps the color's RGB components between 0.0 and 1.0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::LinearColor;
+    /// #
+    /// let color = LinearColor::new(1.5, -1.0, 0.5);
+    /// assert_eq!(color.clamp(), LinearColor::new(1.0, 0.0, 0.5))
+    /// ```
     pub fn clamp(self) -> Self {
         fn clamp(v: f32) -> f32 {
             if v > 1. {
@@ -108,19 +151,6 @@ impl From<LinearColor> for image::Rgb<u8> {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    #[test]
-    fn black_is_black() {
-        let black = LinearColor::black();
-        assert_eq!(
-            black,
-            LinearColor {
-                r: 0.,
-                g: 0.,
-                b: 0.
-            }
-        )
-    }
 
     #[test]
     fn default_is_black() {
@@ -302,12 +332,6 @@ mod test {
                 b: 0.,
             }
         );
-    }
-
-    #[test]
-    fn clamp_works() {
-        let color = LinearColor::new(1.5, -1., 0.5);
-        assert_eq!(color.clamp(), LinearColor::new(1., 0., 0.5))
     }
 
     #[test]

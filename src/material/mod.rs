@@ -1,3 +1,5 @@
+//! Various material implementations
+
 use super::core::LightProperties;
 use super::Point2D;
 use serde::Deserialize;
@@ -5,6 +7,7 @@ use serde::Deserialize;
 /// All the existing `Material` implementation.
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
+#[allow(missing_docs)]
 #[enum_dispatch::enum_dispatch]
 #[derive(Debug, PartialEq, Deserialize)]
 pub enum MaterialEnum {
@@ -19,5 +22,5 @@ pub trait Material: std::fmt::Debug {
     fn properties(&self, point: Point2D) -> LightProperties;
 }
 
-pub mod uniform;
+mod uniform;
 pub use uniform::*;

@@ -4,6 +4,7 @@ use crate::{Point, Vector};
 use serde::{Deserialize, Deserializer};
 
 /// Represent a light emanating from a directed light-source, outputting rays in a cone.
+///
 /// The illumination cone cannot have an FOV over 180°.
 #[derive(Debug, PartialEq)]
 pub struct SpotLight {

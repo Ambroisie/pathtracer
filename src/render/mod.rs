@@ -1,3 +1,5 @@
+//! Rendering logic
+
 pub mod light_aggregate;
 pub use light_aggregate::*;
 

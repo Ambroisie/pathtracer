@@ -1,9 +1,13 @@
+//! Light property coefficients (diffuse, specular, transparency, reflectivity...)
+
 use super::color::LinearColor;
 use serde::Deserialize;
 
 #[derive(Debug, PartialEq, Clone, Deserialize)]
 #[serde(untagged)]
+/// This enum stores the reflectivity or transparency information.
 pub enum ReflTransEnum {
+    /// Transparence properties.
     Transparency {
         /// The transparency coefficient.
         #[serde(rename = "transparency")]
@@ -11,6 +15,7 @@ pub enum ReflTransEnum {
         /// The diffraction index.
         index: f32,
     },
+    /// Reflectivity properties.
     Reflectivity {
         /// The reflectivity coefficient.
         #[serde(rename = "reflectivity")]
@@ -31,6 +36,20 @@ pub struct LightProperties {
 }
 
 impl LightProperties {
+    /// Creates a new `LightProperties` struct.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::light_properties::{LightProperties, ReflTransEnum};
+    /// # use pathtracer::core::color::LinearColor;
+    /// #
+    /// let lp = LightProperties::new(
+    ///     LinearColor::new(0.25, 0.5, 1.),
+    ///     LinearColor::new(0.75, 0.375, 0.125),
+    ///     Some(ReflTransEnum::Reflectivity { coef: 0.5 }),
+    /// );
+    /// ```
     pub fn new(
         diffuse: LinearColor,
         specular: LinearColor,

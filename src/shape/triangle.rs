@@ -13,6 +13,22 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    /// Creates a new `Triangle` from 3 [`Point`]s.
+    ///
+    /// [`Point`]: ../../type.Point.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::shape::Triangle;
+    /// # use pathtracer::Point;
+    /// #
+    /// let t = Triangle::new(
+    ///     Point::new(1.0, 0.0, 0.0),
+    ///     Point::new(0.0, 1.0, 0.0),
+    ///     Point::new(0.0, 0.0, 1.0),
+    /// );
+    /// ```
     pub fn new(c0: Point, c1: Point, c2: Point) -> Self {
         Triangle {
             c0,

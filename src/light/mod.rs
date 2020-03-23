@@ -1,3 +1,5 @@
+//! Various light implementations
+
 use super::core::LinearColor;
 use super::{Point, Vector};
 
@@ -13,14 +15,14 @@ pub trait SpatialLight: Light {
     fn to_source(&self, origin: &Point) -> (Vector, f32);
 }
 
-pub mod ambient_light;
+mod ambient_light;
 pub use ambient_light::*;
 
-pub mod directional_light;
+mod directional_light;
 pub use directional_light::*;
 
-pub mod point_light;
+mod point_light;
 pub use point_light::*;
 
-pub mod spot_light;
+mod spot_light;
 pub use spot_light::*;
