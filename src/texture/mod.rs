@@ -22,5 +22,5 @@ pub trait Texture: std::fmt::Debug {
     fn texel_color(&self, point: Point2D) -> LinearColor;
 }
 
-pub mod uniform;
+mod uniform;
 pub use uniform::*;
