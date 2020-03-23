@@ -22,5 +22,5 @@ pub trait Material: std::fmt::Debug {
     fn properties(&self, point: Point2D) -> LightProperties;
 }
 
-pub mod uniform;
+mod uniform;
 pub use uniform::*;
