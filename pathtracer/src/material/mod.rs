@@ -13,6 +13,7 @@ use serde::Deserialize;
 pub enum MaterialEnum {
     #[serde(rename = "uniform")]
     UniformMaterial,
+    TriangleMaterial,
 }
 
 /// Represent the physical light properties of an object in the scene;
@@ -21,6 +22,9 @@ pub trait Material: std::fmt::Debug {
     /// Get the physical properties at a point.
     fn properties(&self, point: Point2D) -> LightProperties;
 }
+
+mod triangle;
+pub use triangle::*;
 
 mod uniform;
 pub use uniform::*;
