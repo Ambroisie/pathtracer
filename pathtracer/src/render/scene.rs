@@ -173,6 +173,9 @@ impl Scene {
         let normal = object.shape.normal(&point);
         let reflected_ray = reflected(incident_ray, normal);
 
+        // FIXME: change this to averaged sampled rays instead of visiting every light ?
+        // Indeed the path-tracing algorithm is good for calculating the radiance at a point
+        // But it should be used for reflection and refraction too...
         let lighting = self.illuminate(point, object_color, &properties, normal, reflected_ray);
         if properties.refl_trans.is_none() {
             // Avoid calculating reflection when not needed
