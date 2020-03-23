@@ -37,8 +37,8 @@ impl Bounded for dyn Shape {
     }
 }
 
-pub mod sphere;
+mod sphere;
 pub use sphere::*;
 
-pub mod triangle;
+mod triangle;
 pub use triangle::*;
