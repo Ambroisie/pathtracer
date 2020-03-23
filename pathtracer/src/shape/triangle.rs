@@ -38,7 +38,7 @@ impl Triangle {
         }
     }
 
-    fn barycentric(&self, point: &Point) -> Point2D {
+    pub(crate) fn barycentric(&self, point: &Point) -> Point2D {
         let c0_pos = point - self.c0;
         // P - A  =  u * (B - A) + v * (C - A)
         // (C - A) = v0 is c0c2

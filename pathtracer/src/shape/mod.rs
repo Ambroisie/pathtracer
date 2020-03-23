@@ -18,6 +18,7 @@ use serde::Deserialize;
 pub enum ShapeEnum {
     Sphere,
     Triangle,
+    InterpolatedTriangle,
 }
 
 /// Represent an abstract shape inside the scene.
@@ -50,6 +51,9 @@ impl Intersected for dyn Shape {
         self.intersect(ray)
     }
 }
+
+mod interpolated_triangle;
+pub use interpolated_triangle::*;
 
 mod sphere;
 pub use sphere::*;
