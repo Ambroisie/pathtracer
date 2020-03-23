@@ -1,5 +1,7 @@
 use crate::Vector;
 use nalgebra::Unit;
+use rand::prelude::thread_rng;
+use rand::Rng;
 
 pub fn reflected(incident: Unit<Vector>, normal: Unit<Vector>) -> Unit<Vector> {
     let proj = incident.dot(&normal);
@@ -63,5 +65,60 @@ impl RefractionInfo {
 
     pub fn exit_medium(&mut self) {
         std::mem::swap(&mut self.old_index, &mut self.new_index)
+    }
+}
+
+/// Returns a random ray in the hemisphere described by a normal unit-vector, and the probability
+/// to have picked that direction.
+#[allow(unused)] // FIXME: remove once used
+pub fn sample_hemisphere(normal: Vector) -> (Vector, f32) {
+    let mut rng = thread_rng();
+    let azimuth = rng.gen::<f32>() * std::f32::consts::PI * 2.;
+    // Cosine weighted importance sampling
+    let cos_elevation: f32 = rng.gen();
+    let sin_elevation = f32::sqrt(1. - cos_elevation * cos_elevation);
+
+    let x = sin_elevation * azimuth.cos();
+    let y = cos_elevation;
+    let z = sin_elevation * azimuth.sin();
+
+    // Calculate orthonormal base, defined by (normalb_b, normal, normal_t)
+    // Pay attention to degenerate cases when (y, z) is small for use with cross product
+    let normal_t = if normal.x.abs() > normal.y.abs() {
+        Vector::new(normal.z, 0., -normal.x).normalize()
+    } else {
+        Vector::new(0., -normal.z, normal.y).normalize()
+    };
+    let normal_b = normal.cross(&normal_t);
+
+    // Perform the matrix calculation by hand...
+    let scattered = Vector::new(
+        x * normal_b.x + y * normal.x + z * normal_t.x,
+        x * normal_b.y + y * normal.y + z * normal_t.y,
+        x * normal_b.z + y * normal.z + z * normal_t.z,
+    );
+
+    // The probability to have picked the ray is inversely proportional to cosine of the angle with
+    // the normal
+    (scattered, 1. / scattered.dot(&normal))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn sample_hemisphere_work() {
+        // NOTE(Bruno): should use some test-case generation for failure-reproduction purposes...
+        let mut rng = thread_rng();
+        for _ in 0..100 {
+            let normal = Vector::new(rng.gen(), rng.gen(), rng.gen());
+            for _ in 0..100 {
+                let (sample, proportion) = sample_hemisphere(normal);
+                let cos_angle = normal.dot(&sample);
+                assert!(cos_angle >= 0.);
+                assert!(1. / cos_angle - proportion < std::f32::EPSILON);
+            }
+        }
     }
 }
