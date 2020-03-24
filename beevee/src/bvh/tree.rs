@@ -25,12 +25,11 @@ struct Node {
 ///
 /// [`Bounded`]: ../aabb/trait.Bounded.html
 #[derive(Clone, Debug, PartialEq)]
-pub struct BVH<'o, O: Bounded> {
-    objects: &'o [O],
+pub struct BVH {
     tree: Node,
 }
 
-impl<'o, O: Bounded> BVH<'o, O> {
+impl BVH {
     /// Build a [`BVH`] for the given slice of objects.
     /// Each leaf node will be built in a way to try and contain less than 32 objects.
     ///
@@ -40,6 +39,7 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// use beevee::aabb::{AABB, Bounded};
     /// use beevee::bvh::BVH;
     ///
+    /// #[derive(Clone, Debug, PartialEq)]
     /// struct Sphere {
     ///     center: Point,
     ///     radius: f32,
@@ -58,7 +58,7 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::build(spheres);
     /// ```
-    pub fn build(objects: &'o mut [O]) -> Self {
+    pub fn build<O: Bounded>(objects: &mut [O]) -> Self {
         Self::with_max_capacity(objects, 32)
     }
 
@@ -72,6 +72,7 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// use beevee::aabb::{AABB, Bounded};
     /// use beevee::bvh::BVH;
     ///
+    /// #[derive(Clone, Debug, PartialEq)]
     /// struct Sphere {
     ///     center: Point,
     ///     radius: f32,
@@ -90,9 +91,9 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
     /// ```
-    pub fn with_max_capacity(objects: &'o mut [O], max_cap: usize) -> Self {
+    pub fn with_max_capacity<O: Bounded>(objects: &mut [O], max_cap: usize) -> Self {
         let tree = build_node(objects, 0, objects.len(), max_cap);
-        Self { objects, tree }
+        Self { tree }
     }
 
     /// Return the true if the [`BVH`] has been built soundly:
@@ -106,6 +107,7 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// # use beevee::aabb::{AABB, Bounded};
     /// # use beevee::bvh::BVH;
     /// #
+    /// # #[derive(Clone, Debug, PartialEq)]
     /// # struct Sphere {
     /// #     center: Point,
     /// #     radius: f32,
@@ -124,9 +126,10 @@ impl<'o, O: Bounded> BVH<'o, O> {
     /// // Using the same sphere definition than build
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
-    /// assert!(bvh.is_sound());
+    /// assert!(bvh.is_sound(spheres));
     /// ```
-    pub fn is_sound(&self) -> bool {
+
+    pub fn is_sound<O: Bounded>(&self, objects: &[O]) -> bool {
         fn check_node<O: Bounded>(objects: &[O], node: &Node) -> bool {
             if node.begin > node.end {
                 return false;
@@ -146,7 +149,7 @@ impl<'o, O: Bounded> BVH<'o, O> {
                 }
             }
         };
-        check_node(self.objects, &self.tree)
+        check_node(objects, &self.tree)
     }
 }
 
@@ -220,7 +223,6 @@ fn compute_sah<O: Bounded>(objects: &mut [O], surface: f32, max_cap: usize) -> (
         left_surfaces.clear();
         right_surfaces.clear();
         // Sort in order along the axis
-        // FIXME: use parallel sort
         objects.sort_by(|lhs, rhs| {
             lhs.centroid()[axis]
                 .partial_cmp(&rhs.centroid()[axis])
