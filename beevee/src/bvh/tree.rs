@@ -1,4 +1,5 @@
 use crate::aabb::{Bounded, AABB};
+use crate::ray::Ray;
 use crate::Axis;
 
 /// An enum representing either an internal or a leaf node of the [`BVH`]
@@ -150,6 +151,109 @@ impl BVH {
             }
         };
         check_node(objects, &self.tree)
+    }
+
+    /// Iterate recursively over the [`BVH`] to find an intersection point with the given [`Ray`].
+    /// This algorithm tries to only iterate over Nodes that are abolutely necessary, and skip
+    /// visiting nodes that are too far away.
+    /// You still need to make sure if the object is actually intersected by the [`Ray`]
+    /// afterwards.
+    ///
+    /// [`BVH`]: struct.BVH.html
+    /// [`Ray`]: ../ray/struct.Ray.html
+    /// # Examples
+    /// ```
+    /// # use beevee::{Point, Vector};
+    /// # use beevee::aabb::{AABB, Bounded};
+    /// # use beevee::bvh::BVH;
+    /// use beevee::ray::Ray;
+    /// #
+    /// # #[derive(Clone, Debug, PartialEq)]
+    /// # struct Sphere {
+    /// #     center: Point,
+    /// #     radius: f32,
+    /// # }
+    /// #
+    /// # impl Bounded for Sphere {
+    /// #     fn aabb(&self) -> AABB {
+    /// #         let delt = Vector::new(self.radius, self.radius, self.radius);
+    /// #         AABB::with_bounds(self.center - delt, self.center + delt)
+    /// #     }
+    /// #     fn centroid(&self) -> Point {
+    /// #         self.center
+    /// #     }
+    /// # }
+    /// #
+    /// // Using the same sphere definition than build
+    /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 0.5 }];
+    /// let bvh = BVH::with_max_capacity(spheres, 32);
+    ///
+    /// // This ray is directly looking at the spheres
+    /// let ray = Ray::new(Point::new(-1., 0., 0.), Vector::x_axis());
+    /// let res = bvh.walk(&ray, spheres);
+    ///
+    /// assert!(res.is_some());
+    /// let (dist, obj) = res.unwrap();
+    /// assert_eq!(dist, 0.5);
+    /// assert_eq!(obj, &spheres[0]);
+    /// ```
+    pub fn walk<'o, O: Bounded>(&self, ray: &Ray, objects: &'o [O]) -> Option<&'o O> {
+        walk_rec_helper(ray, objects, &self.tree, std::f32::INFINITY).map(|(_, obj)| obj)
+    }
+}
+
+fn walk_rec_helper<'o, O: Bounded>(
+    ray: &Ray,
+    objects: &'o [O],
+    node: &Node,
+    min: f32,
+) -> Option<(f32, &'o O)> {
+    use std::cmp::Ordering;
+
+    match &node.kind {
+        // Return the smallest intersection distance on leaf nodes
+        NodeEnum::Leaf => objects[node.begin..node.end]
+            .iter()
+            // This turns the Option<f32> of an intersection into an Option<(f32, &O)>
+            .filter_map(|o| ray.aabb_intersection(&o.aabb()).map(|d| (d, o)))
+            // Discard values that are too far away
+            .filter(|(dist, _)| dist < &min)
+            // Only keep the minimum value, if there is one
+            .min_by(|(lhs, _), (rhs, _)| lhs.partial_cmp(rhs).unwrap_or(Ordering::Equal)),
+
+        // Recursively find the best node otherwise
+        NodeEnum::Internal { left, right } => {
+            let left_dist = left.bounds.distance_to_point(ray.origin);
+            let right_dist = right.bounds.distance_to_point(ray.origin);
+            // Pick the short and far nodes
+            let (near, far, short_dist, far_dist) = if left_dist < right_dist {
+                (left, right, left_dist, right_dist)
+            } else {
+                (right, left, right_dist, left_dist)
+            };
+            // Don't recurse if we know we cannot possibly find a short-enough intersection
+            if short_dist > min {
+                return None;
+            }
+            // Recurse to the nearest Node first
+            let nearest_res = walk_rec_helper(ray, objects, near.as_ref(), min);
+            // Return immediately if there is no point going to the right at all
+            if far_dist > min {
+                return nearest_res;
+            }
+            match nearest_res {
+                // Short-circuit if we know it is shorter than any point in the far node
+                Some((t, obj)) if t <= far_dist => Some((t, obj)),
+                // We have short_dist <= far_dist <= min in this scenario
+                // With the eventual val.0 in the [short_dist, min) window
+                val => {
+                    // Compute the new minimal distance encountered
+                    let min = val.map_or(min, |(t, _)| min.min(t));
+                    // Recursing with this new minimum can only return None or a better intersecion
+                    walk_rec_helper(ray, objects, far.as_ref(), min).or(val)
+                }
+            }
+        }
     }
 }
 
