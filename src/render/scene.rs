@@ -2,7 +2,7 @@
 
 use std::cmp::Ordering;
 
-use super::{light_aggregate::LightAggregate, object::Object};
+use super::{light_aggregate::LightAggregate, object::Object, utils::*};
 use crate::{
     core::{Camera, LightProperties, LinearColor, ReflTransEnum},
     material::Material,
@@ -121,6 +121,7 @@ impl Scene {
         let (x, y) = self.camera.film().pixel_ratio(x, y);
         let pixel = self.camera.film().pixel_at_ratio(x, y);
         let direction = (pixel - self.camera.origin()).normalize();
+        let indices = RefractionInfo::with_index(self.diffraction_index);
         self.cast_ray(Ray::new(pixel, direction))
             .map_or_else(LinearColor::black, |(t, obj)| {
                 self.color_at(
@@ -128,7 +129,7 @@ impl Scene {
                     obj,
                     direction,
                     self.reflection_limit,
-                    self.diffraction_index,
+                    indices,
                 )
             })
     }
@@ -164,42 +165,37 @@ impl Scene {
         object: &Object,
         incident_ray: Vector,
         reflection_limit: u32,
-        diffraction_index: f32,
+        mut indices: RefractionInfo,
     ) -> LinearColor {
         let texel = object.shape.project_texel(&point);
         let properties = object.material.properties(texel);
         let object_color = object.texture.texel_color(texel);
 
         let normal = object.shape.normal(&point);
-        let reflected = reflected(incident_ray, normal);
+        let reflected_ray = reflected(incident_ray, normal);
 
-        let lighting = self.illuminate(point, object_color, &properties, normal, reflected);
-        match properties.refl_trans {
-            None => lighting,
-            Some(ReflTransEnum::Transparency { coef, index }) => {
-                // Calculate the refracted ray, if it was refracted
-                refracted(incident_ray, normal, diffraction_index, index).map_or_else(
+        let lighting = self.illuminate(point, object_color, &properties, normal, reflected_ray);
+        if properties.refl_trans.is_none() {
+            // Avoid calculating reflection when not needed
+            return lighting;
+        }
+        let reflected = self.reflection(point, reflected_ray, reflection_limit, indices.clone());
+        // We can unwrap safely thanks to the check for None before
+        match properties.refl_trans.unwrap() {
+            ReflTransEnum::Transparency { coef, index } => {
+                // Calculate the refracted ray, if it was refracted, and mutate indices accordingly
+                refracted(incident_ray, normal, &mut indices, index).map_or_else(
                     // Total reflection
-                    || self.reflection(point, 1., reflected, reflection_limit, diffraction_index),
+                    || reflected.clone(),
                     // Refraction (refracted ray, amount of *reflection*)
                     |(r, refl_t)| {
-                        let refr_light = self.refraction(point, coef, r, reflection_limit, index)
-                            * (1. - refl_t)
-                            + self.reflection(
-                                point,
-                                refl_t,
-                                reflected,
-                                reflection_limit,
-                                diffraction_index,
-                            ) * refl_t;
+                        let refracted = self.refraction(point, coef, r, reflection_limit, indices);
+                        let refr_light = refracted * (1. - refl_t) + reflected.clone() * refl_t;
                         refr_light * coef + lighting * (1. - coef)
                     },
                 )
             }
-            Some(ReflTransEnum::Reflectivity { coef }) => {
-                self.reflection(point, coef, reflected, reflection_limit, diffraction_index)
-                    + lighting * (1. - coef)
-            }
+            ReflTransEnum::Reflectivity { coef } => reflected * coef + lighting * (1. - coef),
         }
     }
 
@@ -209,7 +205,7 @@ impl Scene {
         transparency: f32,
         refracted: Vector,
         reflection_limit: u32,
-        new_index: f32,
+        indices: RefractionInfo,
     ) -> LinearColor {
         if transparency > 1e-5 && reflection_limit > 0 {
             let refraction_start = point + refracted * 0.001;
@@ -220,7 +216,7 @@ impl Scene {
                     obj,
                     refracted,
                     reflection_limit - 1,
-                    new_index,
+                    indices,
                 );
                 return refracted * transparency;
             }
@@ -231,12 +227,11 @@ impl Scene {
     fn reflection(
         &self,
         point: Point,
-        reflectivity: f32,
         reflected: Vector,
         reflection_limit: u32,
-        diffraction_index: f32,
+        indices: RefractionInfo,
     ) -> LinearColor {
-        if reflectivity > 1e-5 && reflection_limit > 0 {
+        if reflection_limit > 0 {
             let reflection_start = point + reflected * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
                 let resulting_position = reflection_start + reflected * t;
@@ -245,9 +240,9 @@ impl Scene {
                     obj,
                     reflected,
                     reflection_limit - 1,
-                    diffraction_index,
+                    indices,
                 );
-                return color * reflectivity;
+                return color;
             }
         };
         LinearColor::black()
@@ -299,31 +294,6 @@ impl Scene {
             .map(LinearColor::clamp)
             .sum()
     }
-}
-
-fn reflected(incident: Vector, normal: Vector) -> Vector {
-    let proj = incident.dot(&normal);
-    let delt = normal * (proj * 2.);
-    incident - delt
-}
-
-/// Returns None if the ray was totally reflected, Some(refracted_ray, reflected_amount) if not
-fn refracted(incident: Vector, normal: Vector, n_1: f32, n_2: f32) -> Option<(Vector, f32)> {
-    let cos1 = incident.dot(&normal);
-    let normal = if cos1 < 0. { normal } else { -normal };
-    let eta = n_1 / n_2;
-    let k = 1. - eta * eta * (1. - cos1 * cos1);
-    if k < 0. {
-        return None;
-    }
-    let cos1 = cos1.abs();
-    let refracted = eta * incident + (eta * cos1 - f32::sqrt(k)) * normal;
-    let cos2 = -refracted.dot(&normal); // Take the negation because we're on the other side
-    let f_r = (n_2 * cos1 - n_1 * cos2) / (n_2 * cos1 + n_1 * cos2);
-    let f_t = (n_1 * cos2 - n_2 * cos1) / (n_1 * cos2 + n_2 * cos1);
-    let refl_t = (f_r * f_r + f_t * f_t) / 2.;
-    //Some((refracted, 0.))
-    Some((refracted, refl_t))
 }
 
 #[derive(Debug, PartialEq, Deserialize)]

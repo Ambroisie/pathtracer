@@ -8,3 +8,5 @@ pub use object::*;
 
 pub mod scene;
 pub use scene::*;
+
+pub(crate) mod utils;
