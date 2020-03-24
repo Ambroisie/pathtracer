@@ -24,5 +24,5 @@ pub mod bvh;
 /// Module defining a [`Ray`] structure to intersect with the [`BVH`]
 ///
 /// [`BVH`]: ../bvh/struct.BVH.html
-/// [`Ray`]: struct.Ray.html
+/// [`Ray`]: ray/struct.Ray.html
 pub mod ray;
