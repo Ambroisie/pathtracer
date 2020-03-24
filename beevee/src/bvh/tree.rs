@@ -1,4 +1,5 @@
-use crate::aabb::{Bounded, AABB};
+use super::Intersected;
+use crate::aabb::AABB;
 use crate::ray::Ray;
 use crate::Axis;
 
@@ -22,9 +23,9 @@ struct Node {
 }
 
 /// The BVH containing all the objects of type O.
-/// This type must implement [`Bounded`].
+/// This type must implement [`Intersected`].
 ///
-/// [`Bounded`]: ../aabb/trait.Bounded.html
+/// [`Intersected`]: trait.Intersected.html
 #[derive(Clone, Debug, PartialEq)]
 pub struct BVH {
     tree: Node,
@@ -38,7 +39,8 @@ impl BVH {
     /// ```
     /// use beevee::{Point, Vector};
     /// use beevee::aabb::{AABB, Bounded};
-    /// use beevee::bvh::BVH;
+    /// use beevee::bvh::{BVH, Intersected};
+    /// use beevee::ray::Ray;
     ///
     /// #[derive(Clone, Debug, PartialEq)]
     /// struct Sphere {
@@ -56,10 +58,41 @@ impl BVH {
     ///     }
     /// }
     ///
+    /// impl Intersected for Sphere {
+    ///     fn intersect(&self, ray: &Ray) -> Option<f32> {
+    ///         use std::mem;
+    ///
+    ///         let delt = self.center - ray.origin;
+    ///         let tca = ray.direction.dot(&delt);
+    ///         let d2 = delt.norm_squared() - tca * tca;
+    ///         let r_2 = self.radius * self.radius;
+    ///
+    ///         if d2 > r_2 {
+    ///             return None;
+    ///         }
+    ///
+    ///         let thc = (r_2 - d2).sqrt();
+    ///         let mut t_0 = tca - thc;
+    ///         let mut t_1 = tca + thc;
+    ///
+    ///         if t_0 > t_1 {
+    ///             mem::swap(&mut t_0, &mut t_1)
+    ///         }
+    ///         if t_0 < 0. {
+    ///             t_0 = t_1
+    ///         }
+    ///         if t_0 < 0. {
+    ///             None
+    ///         } else {
+    ///             Some(t_0)
+    ///         }
+    ///     }
+    /// }
+    ///
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::build(spheres);
     /// ```
-    pub fn build<O: Bounded>(objects: &mut [O]) -> Self {
+    pub fn build<O: Intersected>(objects: &mut [O]) -> Self {
         Self::with_max_capacity(objects, 32)
     }
 
@@ -71,7 +104,8 @@ impl BVH {
     /// ```
     /// use beevee::{Point, Vector};
     /// use beevee::aabb::{AABB, Bounded};
-    /// use beevee::bvh::BVH;
+    /// use beevee::bvh::{BVH, Intersected};
+    /// use beevee::ray::Ray;
     ///
     /// #[derive(Clone, Debug, PartialEq)]
     /// struct Sphere {
@@ -89,10 +123,41 @@ impl BVH {
     ///     }
     /// }
     ///
+    /// impl Intersected for Sphere {
+    ///     fn intersect(&self, ray: &Ray) -> Option<f32> {
+    ///         use std::mem;
+    ///
+    ///         let delt = self.center - ray.origin;
+    ///         let tca = ray.direction.dot(&delt);
+    ///         let d2 = delt.norm_squared() - tca * tca;
+    ///         let r_2 = self.radius * self.radius;
+    ///
+    ///         if d2 > r_2 {
+    ///             return None;
+    ///         }
+    ///
+    ///         let thc = (r_2 - d2).sqrt();
+    ///         let mut t_0 = tca - thc;
+    ///         let mut t_1 = tca + thc;
+    ///
+    ///         if t_0 > t_1 {
+    ///             mem::swap(&mut t_0, &mut t_1)
+    ///         }
+    ///         if t_0 < 0. {
+    ///             t_0 = t_1
+    ///         }
+    ///         if t_0 < 0. {
+    ///             None
+    ///         } else {
+    ///             Some(t_0)
+    ///         }
+    ///     }
+    /// }
+    ///
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
     /// ```
-    pub fn with_max_capacity<O: Bounded>(objects: &mut [O], max_cap: usize) -> Self {
+    pub fn with_max_capacity<O: Intersected>(objects: &mut [O], max_cap: usize) -> Self {
         let tree = build_node(objects, 0, objects.len(), max_cap);
         Self { tree }
     }
@@ -106,7 +171,8 @@ impl BVH {
     /// ```
     /// # use beevee::{Point, Vector};
     /// # use beevee::aabb::{AABB, Bounded};
-    /// # use beevee::bvh::BVH;
+    /// # use beevee::bvh::{BVH, Intersected};
+    /// # use beevee::ray::Ray;
     /// #
     /// # #[derive(Clone, Debug, PartialEq)]
     /// # struct Sphere {
@@ -124,14 +190,44 @@ impl BVH {
     /// #     }
     /// # }
     /// #
+    /// # impl Intersected for Sphere {
+    /// #     fn intersect(&self, ray: &Ray) -> Option<f32> {
+    /// #         use std::mem;
+    /// #
+    /// #         let delt = self.center - ray.origin;
+    /// #         let tca = ray.direction.dot(&delt);
+    /// #         let d2 = delt.norm_squared() - tca * tca;
+    /// #         let r_2 = self.radius * self.radius;
+    /// #
+    /// #         if d2 > r_2 {
+    /// #             return None;
+    /// #         }
+    /// #
+    /// #         let thc = (r_2 - d2).sqrt();
+    /// #         let mut t_0 = tca - thc;
+    /// #         let mut t_1 = tca + thc;
+    /// #
+    /// #         if t_0 > t_1 {
+    /// #             mem::swap(&mut t_0, &mut t_1)
+    /// #         }
+    /// #         if t_0 < 0. {
+    /// #             t_0 = t_1
+    /// #         }
+    /// #         if t_0 < 0. {
+    /// #             None
+    /// #         } else {
+    /// #             Some(t_0)
+    /// #         }
+    /// #     }
+    /// # }
+    /// #
     /// // Using the same sphere definition than build
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
     /// assert!(bvh.is_sound(spheres));
     /// ```
-
-    pub fn is_sound<O: Bounded>(&self, objects: &[O]) -> bool {
-        fn check_node<O: Bounded>(objects: &[O], node: &Node) -> bool {
+    pub fn is_sound<O: Intersected>(&self, objects: &[O]) -> bool {
+        fn check_node<O: Intersected>(objects: &[O], node: &Node) -> bool {
             if node.begin > node.end {
                 return false;
             }
@@ -156,8 +252,6 @@ impl BVH {
     /// Iterate recursively over the [`BVH`] to find an intersection point with the given [`Ray`].
     /// This algorithm tries to only iterate over Nodes that are abolutely necessary, and skip
     /// visiting nodes that are too far away.
-    /// You still need to make sure if the object is actually intersected by the [`Ray`]
-    /// afterwards.
     ///
     /// [`BVH`]: struct.BVH.html
     /// [`Ray`]: ../ray/struct.Ray.html
@@ -165,8 +259,8 @@ impl BVH {
     /// ```
     /// # use beevee::{Point, Vector};
     /// # use beevee::aabb::{AABB, Bounded};
-    /// # use beevee::bvh::BVH;
-    /// use beevee::ray::Ray;
+    /// # use beevee::bvh::{BVH, Intersected};
+    /// # use beevee::ray::Ray;
     /// #
     /// # #[derive(Clone, Debug, PartialEq)]
     /// # struct Sphere {
@@ -184,6 +278,37 @@ impl BVH {
     /// #     }
     /// # }
     /// #
+    /// # impl Intersected for Sphere {
+    /// #     fn intersect(&self, ray: &Ray) -> Option<f32> {
+    /// #         use std::mem;
+    /// #
+    /// #         let delt = self.center - ray.origin;
+    /// #         let tca = ray.direction.dot(&delt);
+    /// #         let d2 = delt.norm_squared() - tca * tca;
+    /// #         let r_2 = self.radius * self.radius;
+    /// #
+    /// #         if d2 > r_2 {
+    /// #             return None;
+    /// #         }
+    /// #
+    /// #         let thc = (r_2 - d2).sqrt();
+    /// #         let mut t_0 = tca - thc;
+    /// #         let mut t_1 = tca + thc;
+    /// #
+    /// #         if t_0 > t_1 {
+    /// #             mem::swap(&mut t_0, &mut t_1)
+    /// #         }
+    /// #         if t_0 < 0. {
+    /// #             t_0 = t_1
+    /// #         }
+    /// #         if t_0 < 0. {
+    /// #             None
+    /// #         } else {
+    /// #             Some(t_0)
+    /// #         }
+    /// #     }
+    /// # }
+    /// #
     /// // Using the same sphere definition than build
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 0.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
@@ -197,12 +322,12 @@ impl BVH {
     /// assert_eq!(dist, 0.5);
     /// assert_eq!(obj, &spheres[0]);
     /// ```
-    pub fn walk<'o, O: Bounded>(&self, ray: &Ray, objects: &'o [O]) -> Option<&'o O> {
-        walk_rec_helper(ray, objects, &self.tree, std::f32::INFINITY).map(|(_, obj)| obj)
+    pub fn walk<'o, O: Intersected>(&self, ray: &Ray, objects: &'o [O]) -> Option<(f32, &'o O)> {
+        walk_rec_helper(ray, objects, &self.tree, std::f32::INFINITY)
     }
 }
 
-fn walk_rec_helper<'o, O: Bounded>(
+fn walk_rec_helper<'o, O: Intersected>(
     ray: &Ray,
     objects: &'o [O],
     node: &Node,
@@ -215,7 +340,7 @@ fn walk_rec_helper<'o, O: Bounded>(
         NodeEnum::Leaf => objects[node.begin..node.end]
             .iter()
             // This turns the Option<f32> of an intersection into an Option<(f32, &O)>
-            .filter_map(|o| ray.aabb_intersection(&o.aabb()).map(|d| (d, o)))
+            .filter_map(|o| o.intersect(ray).map(|d| (d, o)))
             // Discard values that are too far away
             .filter(|(dist, _)| dist < &min)
             // Only keep the minimum value, if there is one
@@ -257,14 +382,14 @@ fn walk_rec_helper<'o, O: Bounded>(
     }
 }
 
-fn bounds_from_slice<O: Bounded>(objects: &[O]) -> AABB {
+fn bounds_from_slice<O: Intersected>(objects: &[O]) -> AABB {
     objects
         .iter()
         .map(|o| o.aabb())
         .fold(AABB::empty(), |acc, other| acc.union(&other))
 }
 
-fn build_node<O: Bounded>(objects: &mut [O], begin: usize, end: usize, max_cap: usize) -> Node {
+fn build_node<O: Intersected>(objects: &mut [O], begin: usize, end: usize, max_cap: usize) -> Node {
     let aabb = bounds_from_slice(objects);
     // Don't split nodes under capacity
     if objects.len() <= max_cap {
@@ -312,7 +437,11 @@ fn build_node<O: Bounded>(objects: &mut [O], begin: usize, end: usize, max_cap: 
 
 /// Returns the index at which to split for SAH, the Axis along which to split, and the calculated
 /// cost.
-fn compute_sah<O: Bounded>(objects: &mut [O], surface: f32, max_cap: usize) -> (usize, Axis, f32) {
+fn compute_sah<O: Intersected>(
+    objects: &mut [O],
+    surface: f32,
+    max_cap: usize,
+) -> (usize, Axis, f32) {
     // FIXME(Bruno): too imperative to my taste...
     let mut mid = objects.len() / 2;
     let mut dim = Axis::X; // Arbitrary split
