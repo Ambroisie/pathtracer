@@ -15,6 +15,9 @@ pub type Vector = nalgebra::Vector3<f32>;
 /// The module relating to Axis-Aligned Bouding Boxes.
 pub mod aabb;
 
+mod axis;
+pub use axis::*;
+
 /// The module relating to Bouding Volume Hiearchy
 pub mod bvh;
 
