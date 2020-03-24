@@ -20,9 +20,6 @@ pub struct Object {
     pub material: MaterialEnum,
     /// The `Object`'s texture
     pub texture: TextureEnum,
-    #[serde(skip_deserializing)]
-    /// Index inside the `BVH`
-    index: usize,
 }
 
 impl Object {
@@ -55,7 +52,6 @@ impl Object {
             shape,
             material,
             texture,
-            index: 0,
         }
     }
 }
@@ -111,7 +107,6 @@ mod test {
                 shape: shape.into(),
                 material: material.into(),
                 texture: texture.into(),
-                index: 0,
             }
         )
     }
