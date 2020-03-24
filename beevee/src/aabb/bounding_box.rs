@@ -365,10 +365,42 @@ impl AABB {
     /// assert!(aabb.distance_to_point(Point::new(0.5, 0.5, 0.5)).abs() < std::f32::EPSILON);
     /// ```
     pub fn distance_to_point(&self, point: Point) -> f32 {
+        f32::sqrt(self.sqdist_to_point(point))
+    }
+
+    /// Return the square of the shortest distance from an [`AABB`] to a [`Point`].
+    ///
+    /// [`AABB`]: struct.AABB.html
+    /// [`AABB`]: ../type.Point.html
+    ///
+    /// # Examples
+    /// ```
+    /// # use beevee::Point;
+    /// # use beevee::aabb::AABB;
+    /// #
+    /// let low = Point::new(0., 0., 0.);
+    /// let high = Point::new(1., 1., 1.);
+    /// let aabb = AABB::with_bounds(low, high);
+    ///
+    /// assert!((aabb.sqdist_to_point(Point::new(-1., 0., 0.)) - 1.).abs() < std::f32::EPSILON);
+    /// ```
+    ///
+    /// ```
+    /// # use beevee::Point;
+    /// # use beevee::aabb::AABB;
+    /// #
+    /// let low = Point::new(0., 0., 0.);
+    /// let high = Point::new(1., 1., 1.);
+    /// let aabb = AABB::with_bounds(low, high);
+    ///
+    /// // Returns 0. when the point is contained by the AABB
+    /// assert!(aabb.sqdist_to_point(Point::new(0.5, 0.5, 0.5)).abs() < std::f32::EPSILON);
+    /// ```
+    pub fn sqdist_to_point(&self, point: Point) -> f32 {
         let dx = (self.low.x - point.x).max(0.).max(point.x - self.high.x);
         let dy = (self.low.y - point.y).max(0.).max(point.y - self.high.y);
         let dz = (self.low.z - point.z).max(0.).max(point.z - self.high.z);
-        f32::sqrt(dx * dx + dy * dy + dz * dz)
+        dx * dx + dy * dy + dz * dz
     }
 }
 
