@@ -141,7 +141,7 @@ mod test {
         let expected = LightAggregate::new(
             vec![AmbientLight::new(LinearColor::new(1., 0.5, 0.2))],
             vec![DirectionalLight::new(
-                Vector::new(1., 0., 0.),
+                Vector::x_axis(),
                 LinearColor::new(1., 0.5, 0.2),
             )],
             vec![PointLight::new(
@@ -150,7 +150,7 @@ mod test {
             )],
             vec![SpotLight::degrees_new(
                 Point::origin(),
-                Vector::new(1., 0., 0.),
+                Vector::x_axis(),
                 90.,
                 LinearColor::new(1., 0.5, 0.2),
             )],

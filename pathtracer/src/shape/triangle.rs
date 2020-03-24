@@ -1,7 +1,8 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use bvh::aabb::AABB;
-use bvh::ray::Ray;
+use beevee::aabb::AABB;
+use beevee::ray::Ray;
+use nalgebra::Unit;
 use serde::{Deserialize, Deserializer};
 
 /// Represent a triangle inside the scene.
@@ -88,8 +89,8 @@ impl Shape for Triangle {
         }
     }
 
-    fn normal(&self, _: &Point) -> Vector {
-        self.c0c1.cross(&self.c0c2).normalize()
+    fn normal(&self, _: &Point) -> Unit<Vector> {
+        Unit::new_normalize(self.c0c1.cross(&self.c0c2))
     }
 
     fn project_texel(&self, point: &Point) -> Point2D {
@@ -101,6 +102,10 @@ impl Shape for Triangle {
             .grow(&self.c0)
             .grow(&(self.c0 + self.c0c1))
             .grow(&(self.c0 + self.c0c2))
+    }
+
+    fn centroid(&self) -> Point {
+        self.c0 + (self.c0c1 + self.c0c2) / 2.
     }
 }
 
@@ -132,6 +137,7 @@ impl<'de> Deserialize<'de> for Triangle {
 #[cfg(test)]
 mod test {
     use super::*;
+    use nalgebra::Unit;
 
     fn simple_triangle() -> Triangle {
         Triangle::new(
@@ -146,7 +152,7 @@ mod test {
         let triangle = simple_triangle();
         let ans = triangle.intersect(&Ray::new(
             Point::new(-1., 0.5, 0.5),
-            Vector::new(1., 0., 0.),
+            Unit::new_normalize(Vector::new(1., 0., 0.)),
         ));
         assert_eq!(ans, Some(1.0))
     }
@@ -156,7 +162,7 @@ mod test {
         let triangle = simple_triangle();
         let ans = triangle.intersect(&Ray::new(
             Point::new(-1., 0.5, 0.),
-            Vector::new(1., 0., 0.5),
+            Unit::new_normalize(Vector::new(1., 0., 0.5)),
         ));
         assert!(ans.is_some());
         assert!((ans.unwrap() - f32::sqrt(1.0 + 0.25)).abs() < 1e-5)
@@ -165,7 +171,10 @@ mod test {
     #[test]
     fn intersect_out_of_bounds_is_none() {
         let triangle = simple_triangle();
-        let ans = triangle.intersect(&Ray::new(Point::new(-1., 0.5, 0.), Vector::new(1., 1., 1.)));
+        let ans = triangle.intersect(&Ray::new(
+            Point::new(-1., 0.5, 0.),
+            Unit::new_normalize(Vector::new(1., 1., 1.)),
+        ));
         assert_eq!(ans, None)
     }
 
@@ -173,7 +182,7 @@ mod test {
     fn normal_works() {
         let triangle = simple_triangle();
         let normal = triangle.normal(&Point::origin());
-        assert_eq!(normal, Vector::new(-1., 0., 0.));
+        assert_eq!(normal, Unit::new_normalize(Vector::new(-1., 0., 0.)));
     }
 
     #[test]

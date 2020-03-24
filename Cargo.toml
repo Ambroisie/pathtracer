@@ -1,38 +1,6 @@
-[package]
-name = "pathtracer"
-version = "0.1.0"
-authors = [
-    "Bruno BELANYI <brunobelanyi@gmail.com>",
-    "Antoine Martin <antoine97.martin@gmail.com>"
+[workspace]
+
+members = [
+    "beevee",
+    "pathtracer",
 ]
-edition = "2018"
-description = "A pathtracer written in Rust"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-name = "pathtracer"
-path = "src/lib.rs"
-
-[[bin]]
-name = "pathtracer"
-path = "src/main.rs"
-
-[dependencies]
-bvh = "0.3.2"
-derive_more = "0.99.3"
-enum_dispatch = "0.2.1"
-image = "0.23.0"
-indicatif = "0.14.0"
-rand = "0.7"
-rayon = "1.3.0"
-serde_yaml = "0.8"
-structopt = "0.3"
-
-[dependencies.nalgebra]
-version = "0.20.0"
-features = ["serde-serialize"]
-
-[dependencies.serde]
-version = "1.0"
-features = ["derive"]

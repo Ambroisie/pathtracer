@@ -1,6 +1,7 @@
 use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
+use nalgebra::Unit;
 use serde::Deserialize;
 
 /// Represent a light emanating from a point in space, following the square distance law.
@@ -38,10 +39,10 @@ impl Light for PointLight {
 }
 
 impl SpatialLight for PointLight {
-    fn to_source(&self, point: &Point) -> (Vector, f32) {
+    fn to_source(&self, point: &Point) -> (Unit<Vector>, f32) {
         let delt = self.position - point;
         let dist = delt.norm();
-        (delt.normalize(), dist)
+        (Unit::new_normalize(delt), dist)
     }
 }
 
@@ -75,7 +76,7 @@ mod test {
     fn to_source_is_correct() {
         let light = simple_light();
         let ans = light.to_source(&Point::new(1., 0., 0.));
-        let expected = (Vector::new(-1., 0., 0.), 1.);
+        let expected = (Unit::new_normalize(Vector::new(-1., 0., 0.)), 1.);
         assert_eq!(ans, expected);
     }
 
