@@ -1,19 +1,19 @@
 use crate::Vector;
+use nalgebra::Unit;
 
-pub fn reflected(incident: Vector, normal: Vector) -> Vector {
+pub fn reflected(incident: Unit<Vector>, normal: Unit<Vector>) -> Unit<Vector> {
     let proj = incident.dot(&normal);
-    let delt = normal * (proj * 2.);
-    (incident - delt).normalize()
+    let delt = normal.into_inner() * (proj * 2.);
+    Unit::new_normalize(incident.as_ref() - delt)
 }
 
 /// Returns None if the ray was totally reflected, Some(refracted_ray, reflected_amount) if not
-/// Adds an element to the top of indices that should be removed
 pub fn refracted(
-    incident: Vector,
-    normal: Vector,
+    incident: Unit<Vector>,
+    normal: Unit<Vector>,
     indices: &mut RefractionInfo,
     new_index: f32,
-) -> Option<(Vector, f32)> {
+) -> Option<(Unit<Vector>, f32)> {
     let cos1 = incident.dot(&normal);
     let normal = if cos1 < 0. {
         // Entering object, change the medium
@@ -32,12 +32,12 @@ pub fn refracted(
     }
     let cos1 = cos1.abs();
     let cos2 = k.sqrt();
-    let refracted = eta * incident + (eta * cos1 - cos2) * normal;
+    let refracted = eta * incident.as_ref() + (eta * cos1 - cos2) * normal.as_ref();
     let f_r = (n_2 * cos1 - n_1 * cos2) / (n_2 * cos1 + n_1 * cos2);
     let f_t = (n_1 * cos2 - n_2 * cos1) / (n_1 * cos2 + n_2 * cos1);
     let refl_t = (f_r * f_r + f_t * f_t) / 2.;
     //Some((refracted, 0.))
-    Some((refracted.normalize(), refl_t))
+    Some((Unit::new_normalize(refracted), refl_t))
 }
 
 #[derive(Debug, PartialEq, Clone)]

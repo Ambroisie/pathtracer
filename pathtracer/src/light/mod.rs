@@ -2,6 +2,7 @@
 
 use super::core::LinearColor;
 use super::{Point, Vector};
+use nalgebra::Unit;
 
 /// Represent a light in the scene being rendered.
 pub trait Light: std::fmt::Debug {
@@ -12,7 +13,7 @@ pub trait Light: std::fmt::Debug {
 /// Represent a light which has an abstract position in the scene being rendered.
 pub trait SpatialLight: Light {
     /// Get a unit vector from the origin to the position of the light, and its distance
-    fn to_source(&self, origin: &Point) -> (Vector, f32);
+    fn to_source(&self, origin: &Point) -> (Unit<Vector>, f32);
 }
 
 mod ambient_light;

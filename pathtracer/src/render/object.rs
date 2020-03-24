@@ -3,8 +3,8 @@
 use crate::material::MaterialEnum;
 use crate::shape::{Shape, ShapeEnum};
 use crate::texture::TextureEnum;
-use bvh::aabb::{Bounded, AABB};
-use bvh::bounding_hierarchy::BHShape;
+use crate::Point;
+use beevee::aabb::{Bounded, AABB};
 use serde::Deserialize;
 
 /// An object being rendered in the scene.
@@ -60,14 +60,9 @@ impl Bounded for Object {
     fn aabb(&self) -> AABB {
         self.shape.aabb()
     }
-}
-impl BHShape for Object {
-    fn set_bh_node_index(&mut self, index: usize) {
-        self.index = index
-    }
 
-    fn bh_node_index(&self) -> usize {
-        self.index
+    fn centroid(&self) -> Point {
+        self.shape.centroid()
     }
 }
 
@@ -79,7 +74,6 @@ mod test {
     use crate::material::UniformMaterial;
     use crate::shape::Sphere;
     use crate::texture::UniformTexture;
-    use crate::Point;
 
     fn simple_object() -> Object {
         let shape = Sphere::new(Point::new(5., 0., 0.), 1.);

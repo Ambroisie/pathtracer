@@ -1,7 +1,5 @@
 //! Scene rendering logic
 
-use std::cmp::Ordering;
-
 use super::{light_aggregate::LightAggregate, object::Object, utils::*};
 use crate::{
     core::{Camera, LightProperties, LinearColor, ReflTransEnum},
@@ -10,8 +8,9 @@ use crate::{
     texture::Texture,
     {Point, Vector},
 };
-use bvh::{bvh::BVH, ray::Ray};
+use beevee::{bvh::BVH, ray::Ray};
 use image::RgbImage;
+use nalgebra::Unit;
 use rand::prelude::thread_rng;
 use rand::Rng;
 use serde::{Deserialize, Deserializer};
@@ -120,12 +119,12 @@ impl Scene {
     fn pixel(&self, x: f32, y: f32) -> LinearColor {
         let (x, y) = self.camera.film().pixel_ratio(x, y);
         let pixel = self.camera.film().pixel_at_ratio(x, y);
-        let direction = (pixel - self.camera.origin()).normalize();
+        let direction = Unit::new_normalize(pixel - self.camera.origin());
         let indices = RefractionInfo::with_index(self.diffraction_index);
         self.cast_ray(Ray::new(pixel, direction))
             .map_or_else(LinearColor::black, |(t, obj)| {
                 self.color_at(
-                    pixel + direction * t,
+                    pixel + direction.as_ref() * t,
                     obj,
                     direction,
                     self.reflection_limit,
@@ -151,19 +150,15 @@ impl Scene {
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {
         self.bvh
-            .traverse(&ray, &self.objects)
-            .iter()
-            .filter_map(|obj| obj.shape.intersect(&ray).map(|distance| (distance, *obj)))
-            .min_by(|(dist_a, _), (dist_b, _)| {
-                dist_a.partial_cmp(dist_b).unwrap_or(Ordering::Equal)
-            })
+            .walk(&ray, &self.objects)
+            .and_then(|o| o.shape.intersect(&ray).map(|t| (t, o)))
     }
 
     fn color_at(
         &self,
         point: Point,
         object: &Object,
-        incident_ray: Vector,
+        incident_ray: Unit<Vector>,
         reflection_limit: u32,
         mut indices: RefractionInfo,
     ) -> LinearColor {
@@ -203,14 +198,14 @@ impl Scene {
         &self,
         point: Point,
         transparency: f32,
-        refracted: Vector,
+        refracted: Unit<Vector>,
         reflection_limit: u32,
         indices: RefractionInfo,
     ) -> LinearColor {
         if transparency > 1e-5 && reflection_limit > 0 {
-            let refraction_start = point + refracted * 0.001;
+            let refraction_start = point + refracted.as_ref() * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(refraction_start, refracted)) {
-                let resulting_position = refraction_start + refracted * t;
+                let resulting_position = refraction_start + refracted.as_ref() * t;
                 let refracted = self.color_at(
                     resulting_position,
                     obj,
@@ -227,14 +222,14 @@ impl Scene {
     fn reflection(
         &self,
         point: Point,
-        reflected: Vector,
+        reflected: Unit<Vector>,
         reflection_limit: u32,
         indices: RefractionInfo,
     ) -> LinearColor {
         if reflection_limit > 0 {
-            let reflection_start = point + reflected * 0.001;
+            let reflection_start = point + reflected.as_ref() * 0.001;
             if let Some((t, obj)) = self.cast_ray(Ray::new(reflection_start, reflected)) {
-                let resulting_position = reflection_start + reflected * t;
+                let resulting_position = reflection_start + reflected.as_ref() * t;
                 let color = self.color_at(
                     resulting_position,
                     obj,
@@ -253,8 +248,8 @@ impl Scene {
         point: Point,
         object_color: LinearColor,
         properties: &LightProperties,
-        normal: Vector,
-        reflected: Vector,
+        normal: Unit<Vector>,
+        reflected: Unit<Vector>,
     ) -> LinearColor {
         let ambient = self.illuminate_ambient(object_color.clone());
         let spatial = self.illuminate_spatial(point, properties, normal, reflected);
@@ -273,14 +268,14 @@ impl Scene {
         &self,
         point: Point,
         properties: &LightProperties,
-        normal: Vector,
-        reflected: Vector,
+        normal: Unit<Vector>,
+        reflected: Unit<Vector>,
     ) -> LinearColor {
         self.lights
             .spatial_lights_iter()
             .map(|light| {
                 let (direction, t) = light.to_source(&point);
-                let light_ray = Ray::new(point + 0.001 * direction, direction);
+                let light_ray = Ray::new(point + 0.001 * direction.as_ref(), direction);
                 match self.cast_ray(light_ray) {
                     // Take shadows into account
                     Some((obstacle_t, _)) if obstacle_t < t => return LinearColor::black(),

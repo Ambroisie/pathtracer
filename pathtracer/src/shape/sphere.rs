@@ -1,7 +1,8 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use bvh::aabb::AABB;
-use bvh::ray::Ray;
+use beevee::aabb::AABB;
+use beevee::ray::Ray;
+use nalgebra::Unit;
 use serde::Deserialize;
 
 /// Represent a sphere shape inside the scene.
@@ -67,13 +68,13 @@ impl Shape for Sphere {
         }
     }
 
-    fn normal(&self, point: &Point) -> Vector {
+    fn normal(&self, point: &Point) -> Unit<Vector> {
         let delt = if self.inverted {
             self.center - point
         } else {
             point - self.center
         };
-        delt.normalize()
+        Unit::new_normalize(delt)
     }
 
     fn project_texel(&self, point: &Point) -> Point2D {
@@ -90,6 +91,10 @@ impl Shape for Sphere {
         let max = self.center + delt;
         AABB::with_bounds(min, max)
     }
+
+    fn centroid(&self) -> Point {
+        self.center
+    }
 }
 
 #[cfg(test)]
@@ -103,21 +108,30 @@ mod test {
     #[test]
     fn intersect_along_axis_works() {
         let sphere = simple_sphere();
-        let ray = Ray::new(Point::new(-2., 0., 0.), Vector::new(1., 0., 0.));
+        let ray = Ray::new(
+            Point::new(-2., 0., 0.),
+            Unit::new_normalize(Vector::new(1., 0., 0.)),
+        );
         assert_eq!(sphere.intersect(&ray), Some(1.))
     }
 
     #[test]
     fn non_intersect_along_axis_works() {
         let sphere = simple_sphere();
-        let ray = Ray::new(Point::new(-2., 0., 0.), Vector::new(-1., 0., 0.));
+        let ray = Ray::new(
+            Point::new(-2., 0., 0.),
+            Unit::new_normalize(Vector::new(-1., 0., 0.)),
+        );
         assert_eq!(sphere.intersect(&ray), None)
     }
 
     #[test]
     fn intersect_not_on_axis() {
         let sphere = simple_sphere();
-        let ray = Ray::new(Point::new(1., 1., 1.), Vector::new(-1., -1., -1.));
+        let ray = Ray::new(
+            Point::new(1., 1., 1.),
+            Unit::new_normalize(Vector::new(-1., -1., -1.)),
+        );
         assert_eq!(sphere.intersect(&ray), Some(f32::sqrt(3.) - 1.))
     }
 
@@ -126,7 +140,7 @@ mod test {
         let sphere = simple_sphere();
         assert_eq!(
             sphere.normal(&Point::new(-1., 0., 0.)),
-            Vector::new(-1., 0., 0.)
+            Unit::new_normalize(Vector::new(-1., 0., 0.))
         )
     }
 
@@ -135,7 +149,7 @@ mod test {
         let sphere = Sphere::inverted_new(Point::origin(), 1.);
         assert_eq!(
             sphere.normal(&Point::new(-1., 0., 0.)),
-            Vector::new(1., 0., 0.)
+            Unit::new_normalize(Vector::new(1., 0., 0.))
         )
     }
 
