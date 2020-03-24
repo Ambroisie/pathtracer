@@ -21,6 +21,7 @@ pub struct Scene {
     lights: LightAggregate,
     objects: Vec<Object>,
     bvh: BVH,
+    background: LinearColor,
     aliasing_limit: u32,
     reflection_limit: u32,
     diffraction_index: f32,
@@ -55,6 +56,7 @@ impl Scene {
     ///             UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
     ///         ),
     ///     ],
+    ///     LinearColor::black(), // Background color
     ///     5,   // aliasing limit
     ///     3,   // reflection recursion limit
     ///     0.0, // diffraction index
@@ -64,6 +66,7 @@ impl Scene {
         camera: Camera,
         lights: LightAggregate,
         mut objects: Vec<Object>,
+        background: LinearColor,
         aliasing_limit: u32,
         reflection_limit: u32,
         diffraction_index: f32,
@@ -75,6 +78,7 @@ impl Scene {
             lights,
             objects,
             bvh,
+            background,
             aliasing_limit,
             reflection_limit,
             diffraction_index,
@@ -121,8 +125,9 @@ impl Scene {
         let pixel = self.camera.film().pixel_at_ratio(x, y);
         let direction = Unit::new_normalize(pixel - self.camera.origin());
         let indices = RefractionInfo::with_index(self.diffraction_index);
-        self.cast_ray(Ray::new(pixel, direction))
-            .map_or_else(LinearColor::black, |(t, obj)| {
+        self.cast_ray(Ray::new(pixel, direction)).map_or_else(
+            || self.background.clone(),
+            |(t, obj)| {
                 self.color_at(
                     pixel + direction.as_ref() * t,
                     obj,
@@ -130,7 +135,8 @@ impl Scene {
                     self.reflection_limit,
                     indices,
                 )
-            })
+            },
+        )
     }
 
     /// Get pixel color with anti-aliasing
@@ -297,6 +303,8 @@ struct SerializedScene {
     #[serde(default)]
     objects: Vec<Object>,
     #[serde(default)]
+    background: LinearColor,
+    #[serde(default)]
     aliasing_limit: u32,
     #[serde(default)]
     reflection_limit: u32,
@@ -310,6 +318,7 @@ impl From<SerializedScene> for Scene {
             scene.camera,
             scene.lights,
             scene.objects,
+            scene.background,
             scene.aliasing_limit,
             scene.reflection_limit,
             scene.starting_diffraction,
@@ -347,10 +356,11 @@ mod test {
         let _scene = Scene::new(
             Camera::default(),
             LightAggregate::empty(),
-            Vec::new(), // Objects list
-            5,          // aliasing limit
-            3,          // reflection recursion limit
-            0.0,        // diffraction index
+            Vec::new(),           // Objects list
+            LinearColor::black(), // Background color
+            5,                    // aliasing limit
+            3,                    // reflection recursion limit
+            0.0,                  // diffraction index
         );
     }
 }
