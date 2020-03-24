@@ -4,7 +4,11 @@ use crate::material::MaterialEnum;
 use crate::shape::{Shape, ShapeEnum};
 use crate::texture::TextureEnum;
 use crate::Point;
-use beevee::aabb::{Bounded, AABB};
+use beevee::{
+    aabb::{Bounded, AABB},
+    bvh::Intersected,
+    ray::Ray,
+};
 use serde::Deserialize;
 
 /// An object being rendered in the scene.
@@ -63,6 +67,12 @@ impl Bounded for Object {
 
     fn centroid(&self) -> Point {
         self.shape.centroid()
+    }
+}
+
+impl Intersected for Object {
+    fn intersect(&self, ray: &Ray) -> Option<f32> {
+        self.shape.intersect(ray)
     }
 }
 

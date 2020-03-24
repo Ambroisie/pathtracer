@@ -3,6 +3,7 @@
 use super::{Point, Point2D, Vector};
 use beevee::{
     aabb::{Bounded, AABB},
+    bvh::Intersected,
     ray::Ray,
 };
 use nalgebra::Unit;
@@ -41,6 +42,12 @@ impl Bounded for dyn Shape {
 
     fn centroid(&self) -> Point {
         self.centroid()
+    }
+}
+
+impl Intersected for dyn Shape {
+    fn intersect(&self, ray: &Ray) -> Option<f32> {
+        self.intersect(ray)
     }
 }
 

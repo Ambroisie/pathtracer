@@ -149,9 +149,7 @@ impl Scene {
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {
-        self.bvh
-            .walk(&ray, &self.objects)
-            .and_then(|o| o.shape.intersect(&ray).map(|t| (t, o)))
+        self.bvh.walk(&ray, &self.objects)
     }
 
     fn color_at(
