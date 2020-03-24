@@ -9,6 +9,8 @@ pub trait Bounded {
     ///
     /// [`AABB`]: struct.AABB.html
     fn aabb(&self) -> AABB;
+    /// Return the centroid of self.
+    fn centroid(&self) -> Point;
 }
 
 /// Implementation of [`Bounded`] for [`AABB`]
@@ -30,6 +32,10 @@ impl Bounded for AABB {
     fn aabb(&self) -> AABB {
         *self
     }
+
+    fn centroid(&self) -> Point {
+        self.centroid()
+    }
 }
 
 /// Implementation of [`Bounded`] for [`Point`]
@@ -49,5 +55,9 @@ impl Bounded for AABB {
 impl Bounded for Point {
     fn aabb(&self) -> AABB {
         AABB::with_bounds(*self, *self)
+    }
+
+    fn centroid(&self) -> Point {
+        *self
     }
 }
