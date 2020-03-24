@@ -10,11 +10,11 @@ use std::fmt::{Display, Formatter, Result};
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Ray {
     /// The point of origin of the ray.
-    origin: Point,
+    pub origin: Point,
     /// A unit vector representing the direction of the ray.
-    direction: Unit<Vector>,
+    pub direction: Unit<Vector>,
     /// The inverse of each coefficient of the ray's direction.
-    inv_direction: Vector,
+    pub inv_direction: Vector,
 }
 
 impl Ray {
@@ -37,96 +37,6 @@ impl Ray {
             direction,
             inv_direction,
         }
-    }
-
-    /// Change the [`Point`] of origin a the [`Ray`] and return the new value.
-    ///
-    /// [`Point`]: ../type.Point.html
-    /// [`Ray`]: struct.Ray.html
-    ///
-    /// # Examples
-    /// ```
-    /// # use beevee::{Point, Vector};
-    /// # use beevee::ray::Ray;
-    ///
-    /// let ray = Ray::new(Point::origin(), Vector::x_axis());
-    /// let new_origin = Point::new(0., 1., 2.);
-    /// let new_ray = ray.with_origin(new_origin);
-    ///
-    /// assert_eq!(new_ray, Ray::new(new_origin, Vector::x_axis()));
-    /// ```
-    #[must_use]
-    pub fn with_origin(&self, origin: Point) -> Self {
-        let mut ans = *self;
-        ans.with_origin_mut(origin);
-        ans
-    }
-
-    /// Mutably change the [`Point`] of origin a the [`Ray`].
-    ///
-    /// [`Point`]: ../type.Point.html
-    /// [`Ray`]: struct.Ray.html
-    ///
-    /// # Examples
-    /// ```
-    /// # use beevee::{Point, Vector};
-    /// # use beevee::ray::Ray;
-    ///
-    /// let mut ray = Ray::new(Point::origin(), Vector::x_axis());
-    /// let new_origin = Point::new(0., 1., 2.);
-    ///
-    /// ray.with_origin_mut(new_origin);
-    ///
-    /// assert_eq!(ray, Ray::new(new_origin, Vector::x_axis()));
-    /// ```
-    pub fn with_origin_mut(&mut self, origin: Point) -> &mut Self {
-        self.origin = origin;
-        self
-    }
-
-    /// Change the [`Vector`] of direction a the [`Ray`] and return the new value.
-    ///
-    /// [`Vector`]: ../type.Vector.html
-    /// [`Ray`]: struct.Ray.html
-    ///
-    /// # Examples
-    /// ```
-    /// # use beevee::{Point, Vector};
-    /// # use beevee::ray::Ray;
-    ///
-    /// let ray = Ray::new(Point::origin(), Vector::x_axis());
-    /// let new_direction = Vector::y_axis();
-    /// let new_ray = ray.with_direction(new_direction);
-    ///
-    /// assert_eq!(new_ray, Ray::new(Point::origin(), new_direction));
-    /// ```
-    #[must_use]
-    pub fn with_direction(&self, direction: Unit<Vector>) -> Self {
-        let mut ans = *self;
-        ans.with_direction_mut(direction);
-        ans
-    }
-
-    /// Mutable change the [`Vector`] of direction a the [`Ray`].
-    ///
-    /// [`Vector`]: ../type.Vector.html
-    /// [`Ray`]: struct.Ray.html
-    ///
-    /// # Examples
-    /// ```
-    /// # use beevee::{Point, Vector};
-    /// # use beevee::ray::Ray;
-    ///
-    /// let mut ray = Ray::new(Point::origin(), Vector::x_axis());
-    /// let new_direction = Vector::y_axis();
-    /// ray.with_direction_mut(new_direction);
-    ///
-    /// assert_eq!(ray, Ray::new(Point::origin(), new_direction));
-    /// ```
-    pub fn with_direction_mut(&mut self, direction: Unit<Vector>) -> &mut Self {
-        self.direction = direction;
-        self.inv_direction = Vector::new(1. / direction.x, 1. / direction.y, 1. / direction.z);
-        self
     }
 
     /// Return the distance to intersect with an [`AABB`], or [`None`] if there's no intersection.
