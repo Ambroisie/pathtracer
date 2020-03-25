@@ -1,4 +1,4 @@
-use super::Intersected;
+use super::Accelerated;
 use crate::aabb::AABB;
 use crate::ray::Ray;
 use crate::Axis;
@@ -23,9 +23,9 @@ struct Node {
 }
 
 /// The BVH containing all the objects of type O.
-/// This type must implement [`Intersected`].
+/// This type must implement [`Accelerated`].
 ///
-/// [`Intersected`]: trait.Intersected.html
+/// [`Accelerated`]: trait.Accelerated.html
 #[derive(Clone, Debug, PartialEq)]
 pub struct BVH {
     tree: Node,
@@ -92,7 +92,7 @@ impl BVH {
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::build(spheres);
     /// ```
-    pub fn build<O: Intersected>(objects: &mut [O]) -> Self {
+    pub fn build<O: Accelerated>(objects: &mut [O]) -> Self {
         Self::with_max_capacity(objects, 32)
     }
 
@@ -157,7 +157,7 @@ impl BVH {
     /// let spheres: &mut [Sphere] = &mut [Sphere{ center: Point::origin(), radius: 2.5 }];
     /// let bvh = BVH::with_max_capacity(spheres, 32);
     /// ```
-    pub fn with_max_capacity<O: Intersected>(objects: &mut [O], max_cap: usize) -> Self {
+    pub fn with_max_capacity<O: Accelerated>(objects: &mut [O], max_cap: usize) -> Self {
         let tree = build_node(objects, 0, objects.len(), max_cap);
         Self { tree }
     }
@@ -226,8 +226,8 @@ impl BVH {
     /// let bvh = BVH::with_max_capacity(spheres, 32);
     /// assert!(bvh.is_sound(spheres));
     /// ```
-    pub fn is_sound<O: Intersected>(&self, objects: &[O]) -> bool {
-        fn check_node<O: Intersected>(objects: &[O], node: &Node) -> bool {
+    pub fn is_sound<O: Accelerated>(&self, objects: &[O]) -> bool {
+        fn check_node<O: Accelerated>(objects: &[O], node: &Node) -> bool {
             if node.begin > node.end {
                 return false;
             }
@@ -322,17 +322,21 @@ impl BVH {
     /// assert_eq!(dist, 0.5);
     /// assert_eq!(obj, &spheres[0]);
     /// ```
-    pub fn walk<'o, O: Intersected>(&self, ray: &Ray, objects: &'o [O]) -> Option<(f32, &'o O)> {
+    pub fn walk<'o, O: Accelerated>(
+        &self,
+        ray: &Ray,
+        objects: &'o [O],
+    ) -> Option<(f32, &'o O::Output)> {
         walk_rec_helper(ray, objects, &self.tree, std::f32::INFINITY)
     }
 }
 
-fn walk_rec_helper<'o, O: Intersected>(
+fn walk_rec_helper<'o, O: Accelerated>(
     ray: &Ray,
     objects: &'o [O],
     node: &Node,
     min: f32,
-) -> Option<(f32, &'o O)> {
+) -> Option<(f32, &'o O::Output)> {
     use std::cmp::Ordering;
 
     match &node.kind {
@@ -340,7 +344,7 @@ fn walk_rec_helper<'o, O: Intersected>(
         NodeEnum::Leaf => objects[node.begin..node.end]
             .iter()
             // This turns the Option<f32> of an intersection into an Option<(f32, &O)>
-            .filter_map(|o| o.intersect(ray).map(|d| (d, o)))
+            .filter_map(|o| o.intersect(ray))
             // Discard values that are too far away
             .filter(|(dist, _)| dist < &min)
             // Only keep the minimum value, if there is one
@@ -382,14 +386,14 @@ fn walk_rec_helper<'o, O: Intersected>(
     }
 }
 
-fn bounds_from_slice<O: Intersected>(objects: &[O]) -> AABB {
+fn bounds_from_slice<O: Accelerated>(objects: &[O]) -> AABB {
     objects
         .iter()
         .map(|o| o.aabb())
         .fold(AABB::empty(), |acc, other| acc.union(&other))
 }
 
-fn build_node<O: Intersected>(objects: &mut [O], begin: usize, end: usize, max_cap: usize) -> Node {
+fn build_node<O: Accelerated>(objects: &mut [O], begin: usize, end: usize, max_cap: usize) -> Node {
     let aabb = bounds_from_slice(objects);
     // Don't split nodes under capacity
     if objects.len() <= max_cap {
@@ -437,7 +441,7 @@ fn build_node<O: Intersected>(objects: &mut [O], begin: usize, end: usize, max_c
 
 /// Returns the index at which to split for SAH, the Axis along which to split, and the calculated
 /// cost.
-fn compute_sah<O: Intersected>(
+fn compute_sah<O: Accelerated>(
     objects: &mut [O],
     surface: f32,
     max_cap: usize,
