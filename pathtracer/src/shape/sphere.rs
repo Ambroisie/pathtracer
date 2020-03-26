@@ -1,6 +1,7 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use beevee::aabb::AABB;
+use beevee::aabb::{Bounded, AABB};
+use beevee::bvh::Intersected;
 use beevee::ray::Ray;
 use nalgebra::Unit;
 use serde::Deserialize;
@@ -38,6 +39,38 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
+    fn normal(&self, point: &Point) -> Unit<Vector> {
+        let delt = if self.inverted {
+            self.center - point
+        } else {
+            point - self.center
+        };
+        Unit::new_normalize(delt)
+    }
+
+    fn project_texel(&self, point: &Point) -> Point2D {
+        // Project the sphere on the XY-plane
+        Point2D::new(
+            0.5 + (point.x - self.center.x) / (2. * self.radius),
+            0.5 + (point.y - self.center.y) / (2. * self.radius),
+        )
+    }
+}
+
+impl Bounded for Sphere {
+    fn aabb(&self) -> AABB {
+        let delt = Vector::new(self.radius, self.radius, self.radius);
+        let min = self.center - delt;
+        let max = self.center + delt;
+        AABB::with_bounds(min, max)
+    }
+
+    fn centroid(&self) -> Point {
+        self.center
+    }
+}
+
+impl Intersected for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<f32> {
         use std::mem;
 
@@ -66,34 +99,6 @@ impl Shape for Sphere {
         } else {
             Some(t_0)
         }
-    }
-
-    fn normal(&self, point: &Point) -> Unit<Vector> {
-        let delt = if self.inverted {
-            self.center - point
-        } else {
-            point - self.center
-        };
-        Unit::new_normalize(delt)
-    }
-
-    fn project_texel(&self, point: &Point) -> Point2D {
-        // Project the sphere on the XY-plane
-        Point2D::new(
-            0.5 + (point.x - self.center.x) / (2. * self.radius),
-            0.5 + (point.y - self.center.y) / (2. * self.radius),
-        )
-    }
-
-    fn aabb(&self) -> AABB {
-        let delt = Vector::new(self.radius, self.radius, self.radius);
-        let min = self.center - delt;
-        let max = self.center + delt;
-        AABB::with_bounds(min, max)
-    }
-
-    fn centroid(&self) -> Point {
-        self.center
     }
 }
 

@@ -1,7 +1,7 @@
 //! Logic for the scene objects
 
 use crate::material::MaterialEnum;
-use crate::shape::{Shape, ShapeEnum};
+use crate::shape::ShapeEnum;
 use crate::texture::TextureEnum;
 use crate::Point;
 use beevee::{

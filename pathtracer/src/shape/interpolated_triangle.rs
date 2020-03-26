@@ -1,7 +1,8 @@
 use super::triangle::Triangle;
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use beevee::aabb::AABB;
+use beevee::aabb::{Bounded, AABB};
+use beevee::bvh::Intersected;
 use beevee::ray::Ray;
 use nalgebra::Unit;
 use serde::Deserialize;
@@ -52,10 +53,6 @@ impl InterpolatedTriangle {
 }
 
 impl Shape for InterpolatedTriangle {
-    fn intersect(&self, ray: &Ray) -> Option<f32> {
-        self.tri.intersect(ray)
-    }
-
     fn normal(&self, point: &Point) -> Unit<Vector> {
         let (u, v) = {
             let c = self.tri.barycentric(point);
@@ -70,13 +67,21 @@ impl Shape for InterpolatedTriangle {
     fn project_texel(&self, point: &Point) -> Point2D {
         self.tri.project_texel(point)
     }
+}
 
+impl Bounded for InterpolatedTriangle {
     fn aabb(&self) -> AABB {
         self.tri.aabb()
     }
 
     fn centroid(&self) -> Point {
         self.tri.centroid()
+    }
+}
+
+impl Intersected for InterpolatedTriangle {
+    fn intersect(&self, ray: &Ray) -> Option<f32> {
+        self.tri.intersect(ray)
     }
 }
 

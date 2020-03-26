@@ -1,6 +1,7 @@
 use super::Shape;
 use crate::{Point, Point2D, Vector};
-use beevee::aabb::AABB;
+use beevee::aabb::{Bounded, AABB};
+use beevee::bvh::Intersected;
 use beevee::ray::Ray;
 use nalgebra::Unit;
 use serde::{Deserialize, Deserializer};
@@ -58,6 +59,29 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
+    fn normal(&self, _: &Point) -> Unit<Vector> {
+        Unit::new_normalize(self.c0c1.cross(&self.c0c2))
+    }
+
+    fn project_texel(&self, point: &Point) -> Point2D {
+        self.barycentric(point)
+    }
+}
+
+impl Bounded for Triangle {
+    fn aabb(&self) -> AABB {
+        AABB::empty()
+            .grow(&self.c0)
+            .grow(&(self.c0 + self.c0c1))
+            .grow(&(self.c0 + self.c0c2))
+    }
+
+    fn centroid(&self) -> Point {
+        self.c0 + (self.c0c1 + self.c0c2) / 2.
+    }
+}
+
+impl Intersected for Triangle {
     fn intersect(&self, ray: &Ray) -> Option<f32> {
         let pvec = ray.direction.cross(&self.c0c2);
         let det = self.c0c1.dot(&pvec);
@@ -87,25 +111,6 @@ impl Shape for Triangle {
         } else {
             Some(t)
         }
-    }
-
-    fn normal(&self, _: &Point) -> Unit<Vector> {
-        Unit::new_normalize(self.c0c1.cross(&self.c0c2))
-    }
-
-    fn project_texel(&self, point: &Point) -> Point2D {
-        self.barycentric(point)
-    }
-
-    fn aabb(&self) -> AABB {
-        AABB::empty()
-            .grow(&self.c0)
-            .grow(&(self.c0 + self.c0c1))
-            .grow(&(self.c0 + self.c0c2))
-    }
-
-    fn centroid(&self) -> Point {
-        self.c0 + (self.c0c1 + self.c0c2) / 2.
     }
 }
 
