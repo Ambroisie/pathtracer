@@ -73,7 +73,6 @@ impl Scene {
         reflection_limit: u32,
         diffraction_index: f32,
     ) -> Self {
-        // NOTE(Antoine): fun fact: BVH::build stack overflows when given an empty slice :)
         let bvh = BVH::build(&mut objects);
         Scene {
             camera,
@@ -353,8 +352,7 @@ mod test {
     }
 
     #[test]
-    #[ignore] // stack overflow because of BVH :(
-    fn bvh_fails() {
+    fn empty_scene() {
         use crate::core::Camera;
         use crate::render::{LightAggregate, Scene};
 
