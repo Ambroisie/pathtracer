@@ -49,6 +49,7 @@ impl LinearColor {
     ///     }
     /// );
     /// ```
+    #[must_use]
     pub fn black() -> Self {
         LinearColor {
             r: 0.,
@@ -66,11 +67,11 @@ impl LinearColor {
     /// #
     /// let color = LinearColor::new(1.0, 0.0, 0.0); // bright red!
     /// ```
+    #[must_use]
     pub fn new(r: f32, g: f32, b: f32) -> Self {
         LinearColor { r, g, b }
     }
 
-    #[must_use]
     /// Clamps the color's RGB components between 0.0 and 1.0.
     ///
     /// # Examples
@@ -81,6 +82,7 @@ impl LinearColor {
     /// let color = LinearColor::new(1.5, -1.0, 0.5);
     /// assert_eq!(color.clamp(), LinearColor::new(1.0, 0.0, 0.5))
     /// ```
+    #[must_use]
     pub fn clamp(self) -> Self {
         fn clamp(v: f32) -> f32 {
             if v > 1. {
