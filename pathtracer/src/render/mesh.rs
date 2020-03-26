@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
-use nalgebra::Unit;
+use nalgebra::{Similarity3, Unit};
 
 use serde::Deserialize;
 
@@ -27,6 +27,12 @@ pub struct Mesh {
 #[derive(Debug, PartialEq, Deserialize)]
 pub(crate) struct Wavefront {
     pub obj_file: PathBuf,
+    #[serde(default = "crate::serialize::vector::zeros")]
+    translation: Vector,
+    #[serde(default = "crate::serialize::vector::zeros")]
+    rotation: Vector,
+    #[serde(default = "crate::serialize::coefficient::default_identity")]
+    scale: f32,
 }
 
 impl TryFrom<Wavefront> for Mesh {
@@ -36,6 +42,10 @@ impl TryFrom<Wavefront> for Mesh {
         let mut shapes = Vec::new();
 
         let (models, materials) = load_obj(&wavefront.obj_file)?;
+
+        // The object to world transformation matrix
+        let transform =
+            Similarity3::new(wavefront.translation, wavefront.rotation, wavefront.scale);
 
         for model in models {
             let mesh = &model.mesh;
@@ -49,29 +59,39 @@ impl TryFrom<Wavefront> for Mesh {
                     mesh.indices[i * 3 + 2] as usize,
                 );
 
-                // FIXME: world-to-object transformations needed
-                let pos_a = Point::from_slice(&mesh.positions[(a * 3)..(a * 3 + 2)]);
-                let pos_b = Point::from_slice(&mesh.positions[(b * 3)..(b * 3 + 2)]);
-                let pos_c = Point::from_slice(&mesh.positions[(c * 3)..(c * 3 + 2)]);
+                let pos_a = transform * Point::from_slice(&mesh.positions[(a * 3)..(a * 3 + 2)]);
+                let pos_b = transform * Point::from_slice(&mesh.positions[(b * 3)..(b * 3 + 2)]);
+                let pos_c = transform * Point::from_slice(&mesh.positions[(c * 3)..(c * 3 + 2)]);
 
                 let triangle: ShapeEnum = if mesh.normals.is_empty() {
                     Triangle::new(pos_a, pos_b, pos_c).into()
                 } else {
-                    let norm_a = Unit::new_normalize(Vector::new(
-                        mesh.normals[a * 3],
-                        mesh.normals[a * 3 + 1],
-                        mesh.normals[a * 3 + 2],
-                    ));
-                    let norm_b = Unit::new_normalize(Vector::new(
-                        mesh.normals[b * 3],
-                        mesh.normals[b * 3 + 1],
-                        mesh.normals[b * 3 + 2],
-                    ));
-                    let norm_c = Unit::new_normalize(Vector::new(
-                        mesh.normals[c * 3],
-                        mesh.normals[c * 3 + 1],
-                        mesh.normals[c * 3 + 2],
-                    ));
+                    // We apply the (arguably useless) scaling to the vectors in case it is
+                    // negative, which would invert their direction
+                    let norm_a = {
+                        let vec = Vector::new(
+                            mesh.normals[a * 3],
+                            mesh.normals[a * 3 + 1],
+                            mesh.normals[a * 3 + 2],
+                        );
+                        Unit::new_normalize(transform * vec)
+                    };
+                    let norm_b = {
+                        let vec = Vector::new(
+                            mesh.normals[b * 3],
+                            mesh.normals[b * 3 + 1],
+                            mesh.normals[b * 3 + 2],
+                        );
+                        Unit::new_normalize(transform * vec)
+                    };
+                    let norm_c = {
+                        let vec = Vector::new(
+                            mesh.normals[c * 3],
+                            mesh.normals[c * 3 + 1],
+                            mesh.normals[c * 3 + 2],
+                        );
+                        Unit::new_normalize(transform * vec)
+                    };
 
                     InterpolatedTriangle::new(pos_a, pos_b, pos_c, norm_a, norm_b, norm_c).into()
                 };
