@@ -28,6 +28,7 @@ rand = "0.7"
 rayon = "1.3.0"
 serde_yaml = "0.8"
 structopt = "0.3"
+tobj = "0.1"
 
 [dependencies.nalgebra]
 version = "0.20.0"

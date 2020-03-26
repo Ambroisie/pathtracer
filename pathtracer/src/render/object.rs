@@ -12,7 +12,7 @@ use beevee::{
 use serde::Deserialize;
 
 /// An object being rendered in the scene.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Object {
     /// The `Object`'s physical shape
     pub shape: ShapeEnum,

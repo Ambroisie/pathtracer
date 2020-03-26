@@ -4,7 +4,7 @@ use crate::Point2D;
 use serde::Deserialize;
 
 /// Represent a material which interpolates between three points.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct TriangleMaterial {
     /// The diffuse components.
     diffuse: [LinearColor; 3],

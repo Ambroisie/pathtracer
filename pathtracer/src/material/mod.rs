@@ -9,7 +9,7 @@ use serde::Deserialize;
 #[serde(rename_all = "lowercase")]
 #[allow(missing_docs)]
 #[enum_dispatch::enum_dispatch]
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub enum MaterialEnum {
     #[serde(rename = "uniform")]
     UniformMaterial,

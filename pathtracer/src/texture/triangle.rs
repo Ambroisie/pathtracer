@@ -4,7 +4,7 @@ use crate::Point2D;
 use serde::Deserialize;
 
 /// Represent a texture which interpolates between three points.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct TriangleTexture {
     /// The texture at each point
     textures: [UniformTexture; 3],

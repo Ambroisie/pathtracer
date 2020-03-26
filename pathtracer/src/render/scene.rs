@@ -328,6 +328,7 @@ impl From<SerializedScene> for Scene {
             .flatten()
             .collect();
         scene.objects.append(&mut flattened_meshes);
+
         Scene::new(
             scene.camera,
             scene.lights,
