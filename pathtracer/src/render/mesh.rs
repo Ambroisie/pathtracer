@@ -101,8 +101,8 @@ impl TryFrom<Wavefront> for Mesh {
                         // Material, or throw a LoadError
                         (
                             UniformMaterial::new(LightProperties::new(
-                                LinearColor::new(1.0, 0.0, 0.0),
-                                LinearColor::new(0.0, 0.0, 0.0),
+                                LinearColor::new(0.5, 0.5, 0.5),
+                                LinearColor::new(0.1, 0.1, 0.1),
                                 None,
                             ))
                             .into(),
