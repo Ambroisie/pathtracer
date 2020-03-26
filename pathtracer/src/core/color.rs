@@ -29,6 +29,8 @@ pub struct LinearColor {
     pub b: f32,
 }
 
+const GAMMA: f32 = 2.2;
+
 impl LinearColor {
     /// Creates the color black.
     ///
@@ -95,6 +97,26 @@ impl LinearColor {
         };
         LinearColor::new(clamp(self.r), clamp(self.g), clamp(self.b))
     }
+
+    /// Encode the linear color into the gamma corrected space, as expected by most picture
+    /// formats.
+    #[must_use]
+    pub fn gamma_encode(self) -> Self {
+        fn gamma(val: f32) -> f32 {
+            val.powf(1.0 / GAMMA)
+        };
+        LinearColor::new(gamma(self.r), gamma(self.g), gamma(self.b))
+    }
+
+    /// Decode the linear color from the gamma corrected space, which is used in most picture
+    /// formats.
+    #[must_use]
+    pub fn gamma_decode(self) -> Self {
+        fn gamma(val: f32) -> f32 {
+            val.powf(GAMMA)
+        };
+        LinearColor::new(gamma(self.r), gamma(self.g), gamma(self.b))
+    }
 }
 
 impl Default for LinearColor {
@@ -140,8 +162,8 @@ impl DivAssign for LinearColor {
 }
 
 impl From<LinearColor> for image::Rgb<u8> {
-    fn from(mut color: LinearColor) -> Self {
-        color = color.clamp();
+    fn from(color: LinearColor) -> Self {
+        let color = color.clamp().gamma_encode();
         image::Rgb([
             (color.r * 255.) as u8,
             (color.g * 255.) as u8,
