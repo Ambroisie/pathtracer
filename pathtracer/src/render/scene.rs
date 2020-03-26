@@ -1,6 +1,6 @@
 //! Scene rendering logic
 
-use super::{light_aggregate::LightAggregate, object::Object, utils::*};
+use super::{light_aggregate::LightAggregate, mesh::Mesh, object::Object, utils::*};
 use crate::{
     core::{Camera, LightProperties, LinearColor, ReflTransEnum},
     material::Material,
@@ -307,6 +307,8 @@ struct SerializedScene {
     #[serde(default)]
     objects: Vec<Object>,
     #[serde(default)]
+    meshes: Vec<Mesh>,
+    #[serde(default)]
     background: LinearColor,
     #[serde(default)]
     aliasing_limit: u32,
@@ -317,7 +319,14 @@ struct SerializedScene {
 }
 
 impl From<SerializedScene> for Scene {
-    fn from(scene: SerializedScene) -> Self {
+    fn from(mut scene: SerializedScene) -> Self {
+        let mut flattened_meshes: Vec<Object> = scene
+            .meshes
+            .into_iter()
+            .map(|m| m.shapes)
+            .flatten()
+            .collect();
+        scene.objects.append(&mut flattened_meshes);
         Scene::new(
             scene.camera,
             scene.lights,

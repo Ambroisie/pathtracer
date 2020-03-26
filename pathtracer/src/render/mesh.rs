@@ -1,8 +1,11 @@
 use super::Object;
+use serde::Deserialize;
 
 /// Represent a mesh of objects.
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Mesh {
     /// The shapes composing the mesh
-    #[allow(unused)] // FIXME: remove when used
-    shapes: Vec<Object>,
+    pub(crate) shapes: Vec<Object>,
 }
+
+// FIXME: wavefront mesh deserialized in mesh
