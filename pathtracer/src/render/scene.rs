@@ -13,9 +13,11 @@ use image::RgbImage;
 use nalgebra::Unit;
 use rand::prelude::thread_rng;
 use rand::Rng;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 /// Represent the scene being rendered.
+#[serde(from = "SerializedScene")]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Scene {
     camera: Camera,
     lights: LightAggregate,
@@ -336,16 +338,6 @@ impl From<SerializedScene> for Scene {
             scene.reflection_limit,
             scene.starting_diffraction,
         )
-    }
-}
-
-impl<'de> Deserialize<'de> for Scene {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let cam: SerializedScene = Deserialize::deserialize(deserializer)?;
-        Ok(cam.into())
     }
 }
 

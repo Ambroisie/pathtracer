@@ -2,12 +2,13 @@ use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
 use nalgebra::Unit;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 /// Represent a light emanating from a directed light-source, outputting rays in a cone.
 ///
 /// The illumination cone cannot have an FOV over 180°.
-#[derive(Debug, PartialEq)]
+#[serde(from = "SerializedSpotLight")]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct SpotLight {
     position: Point,
     direction: Unit<Vector>,
@@ -79,16 +80,6 @@ struct SerializedSpotLight {
 impl From<SerializedSpotLight> for SpotLight {
     fn from(light: SerializedSpotLight) -> Self {
         SpotLight::degrees_new(light.position, light.direction, light.fov, light.color)
-    }
-}
-
-impl<'de> Deserialize<'de> for SpotLight {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let cam: SerializedSpotLight = Deserialize::deserialize(deserializer)?;
-        Ok(cam.into())
     }
 }
 

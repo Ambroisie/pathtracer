@@ -2,10 +2,11 @@
 
 use super::film::Film;
 use crate::{Point, Vector};
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 /// Represent an abstract camera to observe the scene.
-#[derive(Debug, PartialEq)]
+#[serde(from = "SerializedCamera")]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Camera {
     /// Where the camera is set in the scene (i.e: its focal point).
     origin: Point,
@@ -137,16 +138,6 @@ impl From<SerializedCamera> for Camera {
             cam.x,
             cam.y,
         )
-    }
-}
-
-impl<'de> Deserialize<'de> for Camera {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let cam: SerializedCamera = Deserialize::deserialize(deserializer)?;
-        Ok(cam.into())
     }
 }
 

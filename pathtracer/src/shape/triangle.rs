@@ -4,10 +4,11 @@ use beevee::aabb::{Bounded, AABB};
 use beevee::bvh::Intersected;
 use beevee::ray::Ray;
 use nalgebra::Unit;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 /// Represent a triangle inside the scene.
-#[derive(Clone, Debug, PartialEq)]
+#[serde(from = "SerializedTriangle")]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Triangle {
     c0: Point,
     c0c1: Vector,
@@ -126,16 +127,6 @@ impl From<SerializedTriangle> for Triangle {
             triangle.corners[1],
             triangle.corners[2],
         )
-    }
-}
-
-impl<'de> Deserialize<'de> for Triangle {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let cam: SerializedTriangle = Deserialize::deserialize(deserializer)?;
-        Ok(cam.into())
     }
 }
 
