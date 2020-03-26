@@ -35,7 +35,7 @@ impl TryFrom<Wavefront> for Mesh {
     fn try_from(wavefront: Wavefront) -> Result<Mesh, Self::Error> {
         let mut shapes = Vec::new();
 
-        let (models, _materials) = load_obj(&wavefront.obj_file)?;
+        let (models, materials) = load_obj(&wavefront.obj_file)?;
 
         for model in models {
             let mesh = &model.mesh;
@@ -78,16 +78,24 @@ impl TryFrom<Wavefront> for Mesh {
 
                 // FIXME: handle material
                 let (material, texture): (MaterialEnum, TextureEnum) =
-                    if let Some(_) = mesh.material_id {
-                        (
-                            UniformMaterial::new(LightProperties::new(
-                                LinearColor::new(1.0, 0.0, 0.0),
-                                LinearColor::new(0.0, 0.0, 0.0),
-                                None,
-                            ))
-                            .into(),
-                            UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
-                        )
+                    if let Some(mat_id) = mesh.material_id {
+                        let mesh_mat = &materials[mat_id];
+
+                        let diffuse = LinearColor::from_slice(&mesh_mat.ambient[..]);
+                        let specular = LinearColor::from_slice(&mesh_mat.ambient[..]);
+
+                        let material = UniformMaterial::new(LightProperties::new(
+                            diffuse.clone(),
+                            specular,
+                            // FIXME: material.dissolve is supposed to be "the alpha term"
+                            // Needs translation to our ReflTransEnum
+                            None,
+                        ));
+
+                        // we only handle uniform textures
+                        let texture = UniformTexture::new(diffuse);
+
+                        (material.into(), texture.into())
                     } else {
                         // FIXME: should we accept this, and use a default
                         // Material, or throw a LoadError

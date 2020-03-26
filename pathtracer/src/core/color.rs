@@ -70,6 +70,25 @@ impl LinearColor {
         LinearColor { r, g, b }
     }
 
+    /// Creates a new `Color` from a slice.
+    ///
+    /// Panics if slice has less than 3 elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::LinearColor;
+    /// #
+    /// let color = LinearColor::new(&[1.0, 0.0, 0.0]); // bright red!
+    /// ```
+    pub fn from_slice(s: &[f32]) -> Self {
+        LinearColor {
+            r: s[0],
+            g: s[1],
+            b: s[2],
+        }
+    }
+
     #[must_use]
     /// Clamps the color's RGB components between 0.0 and 1.0.
     ///
