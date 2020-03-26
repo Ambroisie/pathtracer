@@ -10,9 +10,9 @@ use tobj::{self, load_obj};
 use super::Object;
 use crate::{
     core::{LightProperties, LinearColor},
-    material::UniformMaterial,
-    shape::InterpolatedTriangle,
-    texture::UniformTexture,
+    material::{MaterialEnum, UniformMaterial},
+    shape::{InterpolatedTriangle, ShapeEnum, Triangle},
+    texture::{TextureEnum, UniformTexture},
     Point, Vector,
 };
 
@@ -54,41 +54,55 @@ impl TryFrom<Wavefront> for Mesh {
                 let pos_b = Point::from_slice(&mesh.positions[(b * 3)..(b * 3 + 2)]);
                 let pos_c = Point::from_slice(&mesh.positions[(c * 3)..(c * 3 + 2)]);
 
-                // FIXME: normals could be empty
-                let norm_a = Unit::new_normalize(Vector::new(
-                    mesh.normals[a * 3],
-                    mesh.normals[a * 3 + 1],
-                    mesh.normals[a * 3 + 2],
-                ));
-                let norm_b = Unit::new_normalize(Vector::new(
-                    mesh.normals[b * 3],
-                    mesh.normals[b * 3 + 1],
-                    mesh.normals[b * 3 + 2],
-                ));
-                let norm_c = Unit::new_normalize(Vector::new(
-                    mesh.normals[c * 3],
-                    mesh.normals[c * 3 + 1],
-                    mesh.normals[c * 3 + 2],
-                ));
+                let triangle: ShapeEnum = if mesh.normals.is_empty() {
+                    Triangle::new(pos_a, pos_b, pos_c).into()
+                } else {
+                    let norm_a = Unit::new_normalize(Vector::new(
+                        mesh.normals[a * 3],
+                        mesh.normals[a * 3 + 1],
+                        mesh.normals[a * 3 + 2],
+                    ));
+                    let norm_b = Unit::new_normalize(Vector::new(
+                        mesh.normals[b * 3],
+                        mesh.normals[b * 3 + 1],
+                        mesh.normals[b * 3 + 2],
+                    ));
+                    let norm_c = Unit::new_normalize(Vector::new(
+                        mesh.normals[c * 3],
+                        mesh.normals[c * 3 + 1],
+                        mesh.normals[c * 3 + 2],
+                    ));
 
-                let t = InterpolatedTriangle::new(pos_a, pos_b, pos_c, norm_a, norm_b, norm_c);
+                    InterpolatedTriangle::new(pos_a, pos_b, pos_c, norm_a, norm_b, norm_c).into()
+                };
 
                 // FIXME: handle material
-                if let Some(_) = mesh.material_id {
-                } else {
-                    // FIXME: should we accept this, and use a default
-                    // Material, or throw a LoadError
-                    shapes.push(Object::new(
-                        t.into(),
-                        UniformMaterial::new(LightProperties::new(
-                            LinearColor::new(1.0, 0.0, 0.0),
-                            LinearColor::new(0.0, 0.0, 0.0),
-                            None,
-                        ))
-                        .into(),
-                        UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
-                    ));
-                }
+                let (material, texture): (MaterialEnum, TextureEnum) =
+                    if let Some(_) = mesh.material_id {
+                        (
+                            UniformMaterial::new(LightProperties::new(
+                                LinearColor::new(1.0, 0.0, 0.0),
+                                LinearColor::new(0.0, 0.0, 0.0),
+                                None,
+                            ))
+                            .into(),
+                            UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
+                        )
+                    } else {
+                        // FIXME: should we accept this, and use a default
+                        // Material, or throw a LoadError
+                        (
+                            UniformMaterial::new(LightProperties::new(
+                                LinearColor::new(1.0, 0.0, 0.0),
+                                LinearColor::new(0.0, 0.0, 0.0),
+                                None,
+                            ))
+                            .into(),
+                            UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),
+                        )
+                    };
+
+                shapes.push(Object::new(triangle, material, texture));
             }
         }
 
