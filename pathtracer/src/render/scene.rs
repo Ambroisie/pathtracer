@@ -299,6 +299,7 @@ impl Scene {
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SerializedScene {
     camera: Camera,
     #[serde(default)]
