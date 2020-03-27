@@ -27,9 +27,9 @@ pub struct Mesh {
 #[derive(Debug, PartialEq, Deserialize)]
 pub(crate) struct Wavefront {
     pub obj_file: PathBuf,
-    #[serde(default = "crate::serialize::vector::zeros")]
+    #[serde(default = "nalgebra::zero")]
     translation: Vector,
-    #[serde(default = "crate::serialize::vector::zeros")]
+    #[serde(default = "nalgebra::zero")]
     rotation: Vector,
     #[serde(default = "crate::serialize::coefficient::default_identity")]
     scale: f32,

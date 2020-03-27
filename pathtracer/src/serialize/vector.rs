@@ -14,8 +14,3 @@ where
     let v: Vector = Deserialize::deserialize(deserializer)?;
     Ok(Unit::new_normalize(v))
 }
-
-/// Return a vector containing all zeros.
-pub fn zeros() -> Vector {
-    Vector::new(0., 0., 0.)
-}
