@@ -59,9 +59,9 @@ impl TryFrom<Wavefront> for Mesh {
                     mesh.indices[i * 3 + 2] as usize,
                 );
 
-                let pos_a = transform * Point::from_slice(&mesh.positions[(a * 3)..(a * 3 + 2)]);
-                let pos_b = transform * Point::from_slice(&mesh.positions[(b * 3)..(b * 3 + 2)]);
-                let pos_c = transform * Point::from_slice(&mesh.positions[(c * 3)..(c * 3 + 2)]);
+                let pos_a = transform * Point::from_slice(&mesh.positions[(a * 3)..(a * 3 + 3)]);
+                let pos_b = transform * Point::from_slice(&mesh.positions[(b * 3)..(b * 3 + 3)]);
+                let pos_c = transform * Point::from_slice(&mesh.positions[(c * 3)..(c * 3 + 3)]);
 
                 let triangle: ShapeEnum = if mesh.normals.is_empty() {
                     Triangle::new(pos_a, pos_b, pos_c).into()
