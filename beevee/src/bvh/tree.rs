@@ -405,7 +405,7 @@ fn build_node<O: Accelerated>(objects: &mut [O], begin: usize, end: usize, max_c
         };
     }
     // Calculate the SAH heuristic for this slice
-    let (split, axis, cost) = compute_sah(&mut objects[begin..end], aabb.surface(), max_cap);
+    let (split, axis, cost) = compute_sah(objects, aabb.surface(), max_cap);
     // Only split if the heuristic shows that it is worth it
     if cost >= objects.len() as f32 {
         return Node {
@@ -415,11 +415,11 @@ fn build_node<O: Accelerated>(objects: &mut [O], begin: usize, end: usize, max_c
             kind: NodeEnum::Leaf,
         };
     }
-    // Avoid degenerate cases, and recenter the split inside [begin, end)
-    let split = if split == 0 || split >= (end - begin - 1) {
-        begin + (end - begin) / 2
+    // Avoid degenerate cases
+    let split = if split <= 1 || split >= (objects.len() - 1) {
+        (end - begin) / 2
     } else {
-        begin + split
+        split
     };
     // Project along chosen axis
     pdqselect::select_by(objects, split, |lhs, rhs| {
@@ -428,8 +428,18 @@ fn build_node<O: Accelerated>(objects: &mut [O], begin: usize, end: usize, max_c
             .expect("Can't use Nans in the SAH computation")
     });
     // Construct children recurivsely on [begin, split) and [split, end)
-    let left = Box::new(build_node(objects, begin, split, max_cap));
-    let right = Box::new(build_node(objects, split, end, max_cap));
+    let left = Box::new(build_node(
+        &mut objects[0..split],
+        begin,
+        begin + split,
+        max_cap,
+    ));
+    let right = Box::new(build_node(
+        &mut objects[split..],
+        begin + split,
+        end,
+        max_cap,
+    ));
     // Build the node recursivelly
     Node {
         bounds: aabb,
@@ -485,7 +495,7 @@ fn compute_sah<O: Accelerated>(
 
             let cost = 1. / max_cap as f32
                 + (left_count as f32 * left_surfaces[left_count - 1]
-                    + right_count as f32 * right_surfaces[right_count])
+                    + right_count as f32 * right_surfaces[right_count - 1])
                     / surface;
 
             if cost < min {
