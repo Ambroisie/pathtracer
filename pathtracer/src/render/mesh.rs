@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
-use nalgebra::{Similarity3, Unit};
+use nalgebra::{Similarity3, Unit, VectorSlice3};
 
 use serde::Deserialize;
 
@@ -69,27 +69,18 @@ impl TryFrom<Wavefront> for Mesh {
                     // We apply the (arguably useless) scaling to the vectors in case it is
                     // negative, which would invert their direction
                     let norm_a = {
-                        let vec = Vector::new(
-                            mesh.normals[a * 3],
-                            mesh.normals[a * 3 + 1],
-                            mesh.normals[a * 3 + 2],
-                        );
+                        let vec: Vector =
+                            VectorSlice3::from_slice(&mesh.normals[(a * 3)..(a * 3 + 3)]).into();
                         Unit::new_normalize(transform * vec)
                     };
                     let norm_b = {
-                        let vec = Vector::new(
-                            mesh.normals[b * 3],
-                            mesh.normals[b * 3 + 1],
-                            mesh.normals[b * 3 + 2],
-                        );
+                        let vec: Vector =
+                            VectorSlice3::from_slice(&mesh.normals[(b * 3)..(b * 3 + 3)]).into();
                         Unit::new_normalize(transform * vec)
                     };
                     let norm_c = {
-                        let vec = Vector::new(
-                            mesh.normals[c * 3],
-                            mesh.normals[c * 3 + 1],
-                            mesh.normals[c * 3 + 2],
-                        );
+                        let vec: Vector =
+                            VectorSlice3::from_slice(&mesh.normals[(c * 3)..(c * 3 + 3)]).into();
                         Unit::new_normalize(transform * vec)
                     };
 
