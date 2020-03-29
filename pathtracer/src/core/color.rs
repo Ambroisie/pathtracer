@@ -79,7 +79,7 @@ impl LinearColor {
     /// ```
     /// # use pathtracer::core::LinearColor;
     /// #
-    /// let color = LinearColor::new(&[1.0, 0.0, 0.0]); // bright red!
+    /// let color = LinearColor::from_slice(&[1.0, 0.0, 0.0]); // bright red!
     /// ```
     pub fn from_slice(s: &[f32]) -> Self {
         LinearColor {
