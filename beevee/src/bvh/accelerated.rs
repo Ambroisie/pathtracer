@@ -24,6 +24,8 @@ pub trait Accelerated: Bounded {
 }
 
 /// The automatic implementation for any [`Intersected`] object to be used in the [`BVH`].
+///
+/// [`BVH`]: struct.BVH.html
 impl<T> Accelerated for T
 where
     T: Intersected,
