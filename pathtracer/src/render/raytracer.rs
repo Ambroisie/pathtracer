@@ -1,4 +1,5 @@
 use super::utils::*;
+use super::Renderer;
 use crate::scene::{Object, Scene};
 use crate::{
     core::{LightProperties, LinearColor, ReflTransEnum},
@@ -245,5 +246,11 @@ impl Raytracer {
             })
             .map(LinearColor::clamp)
             .sum()
+    }
+}
+
+impl Renderer for Raytracer {
+    fn render(&self) -> RgbImage {
+        self.render()
     }
 }
