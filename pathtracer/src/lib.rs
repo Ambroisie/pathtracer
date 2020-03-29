@@ -11,7 +11,7 @@ pub type Point2D = nalgebra::Point2<f32>;
 pub mod core;
 pub mod light;
 pub mod material;
-pub mod render;
+pub mod scene;
 pub mod serialize;
 pub mod shape;
 pub mod texture;

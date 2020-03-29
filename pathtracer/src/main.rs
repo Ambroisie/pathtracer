@@ -1,4 +1,4 @@
-use pathtracer::render::Scene;
+use pathtracer::scene::Scene;
 use std::path::PathBuf;
 use structopt::StructOpt;
 

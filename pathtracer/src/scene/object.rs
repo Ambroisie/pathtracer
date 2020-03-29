@@ -30,7 +30,7 @@ impl Object {
     /// ```
     /// # use pathtracer::core::{LightProperties, LinearColor};
     /// # use pathtracer::material::UniformMaterial;
-    /// # use pathtracer::render::Object;
+    /// # use pathtracer::scene::Object;
     /// # use pathtracer::shape::Sphere;
     /// # use pathtracer::texture::UniformTexture;
     /// # use pathtracer::Point;

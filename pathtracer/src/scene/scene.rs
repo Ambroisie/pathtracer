@@ -37,7 +37,7 @@ impl Scene {
     /// ```
     /// # use pathtracer::core::{Camera, LightProperties, LinearColor};
     /// # use pathtracer::material::UniformMaterial;
-    /// # use pathtracer::render::{LightAggregate, Object, Scene};
+    /// # use pathtracer::scene::{LightAggregate, Object, Scene};
     /// # use pathtracer::shape::Sphere;
     /// # use pathtracer::texture::UniformTexture;
     /// # use pathtracer::Point;
@@ -354,7 +354,7 @@ mod test {
     #[test]
     fn empty_scene() {
         use crate::core::Camera;
-        use crate::render::{LightAggregate, Scene};
+        use crate::scene::{LightAggregate, Scene};
 
         let _scene = Scene::new(
             Camera::default(),

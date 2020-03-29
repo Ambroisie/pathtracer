@@ -23,7 +23,7 @@ impl LightAggregate {
     /// # Examples
     ///
     /// ```
-    /// # use pathtracer::render::LightAggregate;
+    /// # use pathtracer::scene::LightAggregate;
     /// #
     /// let la = LightAggregate::empty();
     /// assert_eq!(la.ambient_lights_iter().count(), 0);
@@ -40,7 +40,7 @@ impl LightAggregate {
     /// # Examples
     ///
     /// ```
-    /// # use pathtracer::render::LightAggregate;
+    /// # use pathtracer::scene::LightAggregate;
     /// #
     /// let la = LightAggregate::new(
     ///     Vec::new(),
