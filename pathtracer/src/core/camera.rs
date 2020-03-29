@@ -12,6 +12,8 @@ use serde::Deserialize;
 pub struct Camera {
     /// Where the camera is set in the scene (i.e: its focal point).
     origin: Point,
+    /// How far away is the camera's plan of focus.
+    distance_to_image: f32,
     /// The film to represent each pixel in the scene.
     film: Film,
 }
@@ -40,15 +42,20 @@ impl Camera {
         forward: Vector,
         up: Vector,
         fov: f32,
-        dist_to_image: f32,
+        distance_to_image: f32,
         x: u32,
         y: u32,
     ) -> Self {
         let right = forward.cross(&up);
-        let center = origin + forward.normalize() * dist_to_image;
-        let screen_size = 2. * f32::tan(fov / 2.) * dist_to_image;
-        let film = Film::new(x, y, screen_size, center, up, right);
-        Camera { origin, film }
+        let screen_size = 2. * f32::tan(fov / 2.);
+        // Construct the film behind the camera, upside down
+        let center = origin - forward.normalize();
+        let film = Film::new(x, y, screen_size, center, -up, -right);
+        Camera {
+            origin,
+            distance_to_image,
+            film,
+        }
     }
 
     /// Get the `Camera`'s [`Film`].
@@ -96,7 +103,7 @@ impl Camera {
     /// ```
     pub fn ray_with_ratio(&self, x: f32, y: f32) -> Ray {
         let pixel = self.film().pixel_at_ratio(x, y);
-        let direction = Unit::new_normalize(pixel - self.origin());
+        let direction = Unit::new_normalize(self.origin() - pixel);
         Ray::new(pixel, direction)
     }
 }
@@ -168,7 +175,7 @@ mod test {
     #[test]
     fn new_works() {
         let cam = Camera::new(
-            Point::new(-1., 0., 0.),
+            Point::new(1., 0., 0.),
             Vector::new(1., 0., 0.),
             Vector::new(0., 1., 0.),
             2. * f32::atan(1.), /* 90° in radian */
@@ -179,14 +186,15 @@ mod test {
         assert_eq!(
             cam,
             Camera {
-                origin: Point::new(-1., 0., 0.),
+                origin: Point::new(1., 0., 0.),
+                distance_to_image: 1.,
                 film: Film::new(
                     1080,
                     1080,
                     2.,
                     Point::origin(),
-                    Vector::new(0., 1., 0.),
-                    Vector::new(0., 0., 1.),
+                    -Vector::new(0., 1., 0.),
+                    -Vector::new(0., 0., 1.),
                 )
             }
         )
@@ -195,7 +203,7 @@ mod test {
     #[test]
     fn deserialization_works() {
         let yaml = r#"
-            origin: [-1.0, 0.0, 0.0]
+            origin: [1.0, 0.0, 0.0]
             forward: [ 1.0, 0.0, 0.0]
             up: [0.0, 1.0, 0.0]
             fov: 90.0
@@ -207,14 +215,15 @@ mod test {
         assert_eq!(
             cam,
             Camera {
-                origin: Point::new(-1., 0., 0.),
+                origin: Point::new(1., 0., 0.),
+                distance_to_image: 1.0,
                 film: Film::new(
                     1080,
                     1080,
                     2.,
                     Point::origin(),
-                    Vector::new(0., 1., 0.),
-                    Vector::new(0., 0., 1.),
+                    -Vector::new(0., 1., 0.),
+                    -Vector::new(0., 0., 1.),
                 )
             }
         )
