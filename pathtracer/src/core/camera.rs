@@ -2,6 +2,8 @@
 
 use super::film::Film;
 use crate::{Point, Vector};
+use beevee::ray::Ray;
+use nalgebra::Unit;
 use serde::Deserialize;
 
 /// Represent an abstract camera to observe the scene.
@@ -78,6 +80,24 @@ impl Camera {
     /// ```
     pub fn origin(&self) -> &Point {
         &self.origin
+    }
+
+    /// Get the Ray coming out of the camera at a given ratio on the image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use pathtracer::core::Camera;
+    /// # use pathtracer::Point;
+    /// #
+    /// let cam = Camera::default();
+    /// let ray_ul = cam.ray_with_ratio(0., 0.); // Ray coming out of the upper-left pixel
+    /// let ray_ul = cam.ray_with_ratio(1., 1.); // Ray coming out of the lower-right pixel
+    /// ```
+    pub fn ray_with_ratio(&self, x: f32, y: f32) -> Ray {
+        let pixel = self.film().pixel_at_ratio(x, y);
+        let direction = Unit::new_normalize(pixel - self.origin());
+        Ray::new(pixel, direction)
     }
 }
 
