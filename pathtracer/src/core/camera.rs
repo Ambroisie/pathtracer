@@ -10,9 +10,9 @@ use serde::Deserialize;
 #[serde(from = "SerializedCamera")]
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Camera {
-    /// Where the camera is set in the scene (i.e: its focal point).
+    /// Where the camera is set in the scene (i.e: the center of the lens).
     origin: Point,
-    /// How far away is the camera's plan of focus.
+    /// How far away is the camera's focal plane.
     distance_to_image: f32,
     /// The film to represent each pixel in the scene.
     film: Film,
