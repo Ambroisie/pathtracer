@@ -44,8 +44,11 @@ impl TryFrom<Wavefront> for Mesh {
         let (models, materials) = load_obj(&wavefront.obj_file)?;
 
         // The object to world transformation matrix
-        let transform =
-            Similarity3::new(wavefront.translation, wavefront.rotation, wavefront.scale);
+        let transform = Similarity3::new(
+            wavefront.translation,
+            wavefront.rotation * std::f32::consts::PI / 180., // From degrees to radians
+            wavefront.scale,
+        );
 
         for model in models {
             let mesh = &model.mesh;
