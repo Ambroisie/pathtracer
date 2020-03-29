@@ -1,3 +1,4 @@
+use pathtracer::render::Raytracer;
 use pathtracer::scene::Scene;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -17,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let f = std::fs::File::open(options.input)?;
 
     let scene: Scene = serde_yaml::from_reader(f)?;
-    let image = scene.render();
+    let image = Raytracer::new(scene).render();
 
     image.save(options.output)?;
     Ok(())
