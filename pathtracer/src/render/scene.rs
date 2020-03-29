@@ -123,16 +123,15 @@ impl Scene {
     /// Get pixel color for (x, y) a pixel **coordinate**
     fn pixel(&self, x: f32, y: f32) -> LinearColor {
         let (x, y) = self.camera.film().pixel_ratio(x, y);
-        let pixel = self.camera.film().pixel_at_ratio(x, y);
-        let direction = Unit::new_normalize(pixel - self.camera.origin());
         let indices = RefractionInfo::with_index(self.diffraction_index);
-        self.cast_ray(Ray::new(pixel, direction)).map_or_else(
+        let ray = self.camera.ray_with_ratio(x, y);
+        self.cast_ray(ray).map_or_else(
             || self.background.clone(),
             |(t, obj)| {
                 self.color_at(
-                    pixel + direction.as_ref() * t,
+                    ray.origin + ray.direction.as_ref() * t,
                     obj,
-                    direction,
+                    ray.direction,
                     self.reflection_limit,
                     indices,
                 )
