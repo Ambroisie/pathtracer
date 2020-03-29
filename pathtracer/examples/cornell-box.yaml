@@ -1,0 +1,22 @@
+reflection_limit: 5
+
+camera:
+  origin: [0.0, 1.0, 0.0]
+  forward: [ 0.0, 0.0, 1.0]
+  up: [0.0, 1.0, 0.0]
+  fov: 90.0
+  distance_to_image: 1.0
+  x: 2160
+  y: 2160
+
+lights:
+  ambients:
+    - color: {r: 0.1, g: 0.1, b: 0.1}
+  points:
+    - position: [-0.5, 1.0, 1.8]
+      color: {r: 1.0, g: 1.0, b: 1.0}
+
+meshes:
+  - obj_file: "pathtracer/examples/cornell-box.obj"
+    translation: [0.0, 0.0, 1.0]
+    rotation: [0, 180, 0]
