@@ -9,6 +9,9 @@ pub trait Renderer {
     fn render(&self) -> RgbImage;
 }
 
+mod pathtrace;
+pub use pathtrace::*;
+
 mod raytracer;
 pub use raytracer::*;
 
