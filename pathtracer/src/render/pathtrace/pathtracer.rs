@@ -1,6 +1,9 @@
 use super::super::Renderer;
+use super::path::*;
 use crate::scene::Scene;
+use crate::{Point, Vector};
 use image::RgbImage;
+use nalgebra::Unit;
 
 /// Render the [`Scene`] using Bidirectional-Pathtracing
 ///
@@ -24,6 +27,18 @@ impl Pathtracer {
     /// [`Scene`]: ../scene/scene/struct.Scene.html
     pub fn render(&self) -> RgbImage {
         todo!()
+    }
+
+    fn construct_path(&self, point: Point, direction: Unit<Vector>) -> Path {
+        let mut res = Path::new(point);
+        for _ in 0..self.scene.reflection_limit {
+            // FIXME:
+            //  * cast_ray: if no intersection, return the empty path
+            //  * look-up information at intersection
+            //  * append to path
+            //  * start again with new origin
+        }
+        res
     }
 }
 
