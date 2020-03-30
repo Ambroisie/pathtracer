@@ -1,4 +1,4 @@
-use pathtracer::render::Raytracer;
+use pathtracer::render::{Pathtracer, Raytracer};
 use pathtracer::scene::Scene;
 use std::path::PathBuf;
 use std::str;
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scene: Scene = serde_yaml::from_reader(f)?;
     let image = match options.renderer {
         RenderOption::Raytracer => Raytracer::new(scene).render(),
-        RenderOption::Pathtracer => todo!(),
+        RenderOption::Pathtracer => Pathtracer::new(scene).render(),
     };
 
     image.save(options.output)?;
