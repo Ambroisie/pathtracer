@@ -46,7 +46,7 @@ impl Raytracer {
             "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {percent:>3}%: {pos}/{len} pixels (ETA: {eta})",
         ));
 
-        let pixel_func = if self.scene.aliasing_limit > 0 {
+        let pixel_func = if self.scene.shot_rays > 0 {
             Self::anti_alias_pixel
         } else {
             Self::pixel
@@ -90,7 +90,7 @@ impl Raytracer {
 
     /// Get pixel color with anti-aliasing
     fn anti_alias_pixel(&self, x: f32, y: f32) -> LinearColor {
-        let range = 0..self.scene.aliasing_limit;
+        let range = 0..self.scene.shot_rays;
         let mut rng = thread_rng();
         let acc: LinearColor = range
             .map(|_| {
@@ -100,7 +100,7 @@ impl Raytracer {
             })
             .map(LinearColor::clamp)
             .sum();
-        acc / self.scene.aliasing_limit as f32
+        acc / self.scene.shot_rays as f32
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {

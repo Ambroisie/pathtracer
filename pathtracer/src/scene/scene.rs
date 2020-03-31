@@ -14,7 +14,7 @@ pub struct Scene {
     pub(crate) objects: Vec<Object>,
     pub(crate) bvh: BVH,
     pub(crate) background: LinearColor,
-    pub(crate) aliasing_limit: u32,
+    pub(crate) shot_rays: u32,
     pub(crate) reflection_limit: u32,
     pub(crate) diffraction_index: f32,
 }
@@ -49,7 +49,7 @@ impl Scene {
     ///         ),
     ///     ],
     ///     LinearColor::black(), // Background color
-    ///     5,   // aliasing limit
+    ///     5,   // amount of rays shot per pixel
     ///     3,   // reflection recursion limit
     ///     0.0, // diffraction index
     /// );
@@ -59,7 +59,7 @@ impl Scene {
         lights: LightAggregate,
         mut objects: Vec<Object>,
         background: LinearColor,
-        aliasing_limit: u32,
+        shot_rays: u32,
         reflection_limit: u32,
         diffraction_index: f32,
     ) -> Self {
@@ -70,7 +70,7 @@ impl Scene {
             objects,
             bvh,
             background,
-            aliasing_limit,
+            shot_rays,
             reflection_limit,
             diffraction_index,
         }
@@ -90,7 +90,7 @@ struct SerializedScene {
     #[serde(default)]
     background: LinearColor,
     #[serde(default)]
-    aliasing_limit: u32,
+    shot_rays: u32,
     #[serde(default)]
     reflection_limit: u32,
     #[serde(default = "crate::serialize::default_identity")]
@@ -112,7 +112,7 @@ impl From<SerializedScene> for Scene {
             scene.lights,
             scene.objects,
             scene.background,
-            scene.aliasing_limit,
+            scene.shot_rays,
             scene.reflection_limit,
             scene.starting_diffraction,
         )
