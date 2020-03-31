@@ -1,5 +1,5 @@
 # Optional field
-aliasing_limit: 10
+shot_rays: 10
 # Optional field
 reflection_limit: 5
 

@@ -1,4 +1,4 @@
-aliasing_limit: 10
+shot_rays: 10
 reflection_limit: 5
 background: {r: 0.5, g: 0.5, b: 0.5}
 
