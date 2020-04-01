@@ -1,12 +1,13 @@
 use super::{Light, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
+use beevee::ray::Ray;
+use nalgebra::Rotation3;
 use nalgebra::Unit;
+use rand::{distributions::Uniform, Rng};
 use serde::Deserialize;
 
 /// Represent a light emanating from a directed light-source, outputting rays in a cone.
-///
-/// The illumination cone cannot have an FOV over 180°.
 #[serde(from = "SerializedSpotLight")]
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct SpotLight {
@@ -45,6 +46,51 @@ impl SpotLight {
             std::f32::consts::PI * fov_deg / 180.,
             color,
         )
+    }
+
+    /// Uniformly sample a ray from the spot-light in a random direction.
+    ///
+    /// # Examles
+    ///
+    ///```
+    /// # use pathtracer::light::SpotLight;
+    /// # use pathtracer::core::color::LinearColor;
+    /// # use pathtracer::{Point, Vector};
+    /// #
+    /// let spot_light = SpotLight::degrees_new(
+    ///     Point::origin(),
+    ///     Vector::x_axis(),
+    ///     90.,
+    ///     LinearColor::new(1.0, 0.0, 1.0),
+    /// );
+    /// let sampled = spot_light.sample_ray();
+    /// ```
+    pub fn sample_ray(&self) -> Ray {
+        let mut rng = rand::thread_rng();
+        // Sample cap at Z-pole uniformly
+        // See <https://math.stackexchange.com/questions/56784>
+        let theta = rng.gen_range(0., std::f32::consts::PI * 2.);
+        let z = rng.sample(Uniform::new(self.cosine_value, 1.)); // Inclusive for the poles
+        let dir = Unit::new_unchecked(Vector::new(
+            // this vector is already of unit length
+            f32::sqrt(1. - z * z) * f32::cos(theta),
+            f32::sqrt(1. - z * z) * f32::sin(theta),
+            z,
+        ));
+        let dir =
+            if let Some(rotate) = Rotation3::rotation_between(&Vector::z_axis(), &self.direction) {
+                // Rotate the direction if needed
+                rotate * dir
+            } else if self.direction.dot(&dir) < 0. {
+                // Special case if the direction is directly opposite, its rotation axis is
+                // undefined, but we don't care about a special axis to perform the rotation
+                -dir
+            } else {
+                dir
+            };
+        // We should now be oriented the right way
+        debug_assert!(self.direction.dot(&dir) >= self.cosine_value);
+        Ray::new(self.position, dir)
     }
 }
 
