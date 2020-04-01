@@ -18,4 +18,5 @@ pub use pathtrace::*;
 mod raytrace;
 pub use raytrace::*;
 
+pub(crate) mod progress;
 pub(crate) mod utils;

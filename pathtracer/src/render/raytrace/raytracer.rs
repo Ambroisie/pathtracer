@@ -40,11 +40,7 @@ impl Raytracer {
         );
 
         let total = (image.width() * image.height()) as u64;
-        let pb = indicatif::ProgressBar::new(total);
-        pb.set_draw_delta(total / 10000);
-        pb.set_style(indicatif::ProgressStyle::default_bar().template(
-            "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {percent:>3}%: {pos}/{len} pixels (ETA: {eta})",
-        ));
+        let pb = super::super::progress::get_progressbar(total);
 
         let pixel_func = if self.scene.shot_rays > 0 {
             Self::anti_alias_pixel
