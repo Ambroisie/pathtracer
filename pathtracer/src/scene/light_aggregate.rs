@@ -8,13 +8,13 @@ use std::iter::Iterator;
 /// A struct centralizing the light computation logic.
 pub struct LightAggregate {
     #[serde(default)]
-    ambients: Vec<AmbientLight>,
+    pub(crate) ambients: Vec<AmbientLight>,
     #[serde(default)]
-    directionals: Vec<DirectionalLight>,
+    pub(crate) directionals: Vec<DirectionalLight>,
     #[serde(default)]
-    points: Vec<PointLight>,
+    pub(crate) points: Vec<PointLight>,
     #[serde(default)]
-    spots: Vec<SpotLight>,
+    pub(crate) spots: Vec<SpotLight>,
 }
 
 impl LightAggregate {

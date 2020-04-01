@@ -1,4 +1,4 @@
-use super::{Light, SpatialLight};
+use super::{Light, SampleLight, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
 use beevee::ray::Ray;
@@ -31,7 +31,23 @@ impl PointLight {
     pub fn new(position: Point, color: LinearColor) -> Self {
         PointLight { position, color }
     }
+}
 
+impl Light for PointLight {
+    fn illumination(&self, point: &Point) -> LinearColor {
+        let dist = (self.position - point).norm();
+        self.color.clone() / dist
+    }
+}
+
+impl SpatialLight for PointLight {
+    fn to_source(&self, point: &Point) -> (Unit<Vector>, f32) {
+        let delt = self.position - point;
+        let dist = delt.norm();
+        (Unit::new_normalize(delt), dist)
+    }
+}
+impl SampleLight for PointLight {
     /// Uniformly sample a ray from the point-light in a random direction.
     ///
     /// # Examles
@@ -47,7 +63,7 @@ impl PointLight {
     /// );
     /// let sampled = dir_light.sample_ray();
     /// ```
-    pub fn sample_ray(&self) -> Ray {
+    fn sample_ray(&self) -> Ray {
         let mut rng = rand::thread_rng();
         // Sample sphere uniformly
         // See <https://mathworld.wolfram.com/SpherePointPicking.html>
@@ -60,21 +76,6 @@ impl PointLight {
             f32::sqrt(1. - y * y) * f32::sin(theta),
         ));
         Ray::new(self.position, dir)
-    }
-}
-
-impl Light for PointLight {
-    fn illumination(&self, point: &Point) -> LinearColor {
-        let dist = (self.position - point).norm();
-        self.color.clone() / dist
-    }
-}
-
-impl SpatialLight for PointLight {
-    fn to_source(&self, point: &Point) -> (Unit<Vector>, f32) {
-        let delt = self.position - point;
-        let dist = delt.norm();
-        (Unit::new_normalize(delt), dist)
     }
 }
 
