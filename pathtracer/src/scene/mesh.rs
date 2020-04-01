@@ -104,6 +104,8 @@ impl TryFrom<Wavefront> for Mesh {
                             // FIXME: material.dissolve is supposed to be "the alpha term"
                             // Needs translation to our ReflTransEnum
                             None,
+                            // FIXME: parse 'Ke' component for emitted light
+                            LinearColor::black(),
                         ));
 
                         // we only handle uniform textures
@@ -118,6 +120,7 @@ impl TryFrom<Wavefront> for Mesh {
                                 LinearColor::new(0.5, 0.5, 0.5),
                                 LinearColor::new(0.1, 0.1, 0.1),
                                 None,
+                                LinearColor::black(),
                             ))
                             .into(),
                             UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),

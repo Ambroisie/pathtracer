@@ -12,19 +12,21 @@ pub struct TriangleMaterial {
     specular: [LinearColor; 3],
     /// The transparency or reflectivity properties, this is not interpolated.
     #[serde(flatten)]
-    pub refl_trans: Option<ReflTransEnum>,
+    refl_trans: Option<ReflTransEnum>,
+    /// The amount of light emitted by the material, only used during path-tracing rendering.
+    emitted: [LinearColor; 3],
 }
 
 impl Material for TriangleMaterial {
     fn properties(&self, point: Point2D) -> LightProperties {
         let (u, v) = (point.x, point.y);
-        let diffuse = self.diffuse[0].clone() * (1. - u - v)
-            + self.diffuse[1].clone() * u
-            + self.diffuse[2].clone() * v;
-        let specular = self.specular[0].clone() * (1. - u - v)
-            + self.specular[1].clone() * u
-            + self.specular[2].clone() * v;
-        LightProperties::new(diffuse, specular, self.refl_trans.clone())
+        let sample = |param: &[LinearColor; 3]| -> LinearColor {
+            param[0].clone() * (1. - u - v) + param[1].clone() * u + param[2].clone() * v
+        };
+        let diffuse = sample(&self.diffuse);
+        let specular = sample(&self.specular);
+        let emitted = sample(&self.emitted);
+        LightProperties::new(diffuse, specular, self.refl_trans.clone(), emitted)
     }
 }
 

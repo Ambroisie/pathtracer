@@ -33,6 +33,9 @@ pub struct LightProperties {
     /// The transparency or reflectivity properties.
     #[serde(flatten)]
     pub refl_trans: Option<ReflTransEnum>,
+    /// The emitted light from this object, only used for path-tracing rendering techniques
+    #[serde(default)]
+    pub emitted: LinearColor,
 }
 
 impl LightProperties {
@@ -48,17 +51,20 @@ impl LightProperties {
     ///     LinearColor::new(0.25, 0.5, 1.),
     ///     LinearColor::new(0.75, 0.375, 0.125),
     ///     Some(ReflTransEnum::Reflectivity { coef: 0.5 }),
+    ///     LinearColor::new(0., 0., 0.),
     /// );
     /// ```
     pub fn new(
         diffuse: LinearColor,
         specular: LinearColor,
         refl_trans: Option<ReflTransEnum>,
+        emitted: LinearColor,
     ) -> Self {
         LightProperties {
             diffuse,
             specular,
             refl_trans,
+            emitted,
         }
     }
 }
@@ -72,14 +78,20 @@ mod test {
         let diffuse = LinearColor::new(0.25, 0.5, 1.);
         let specular = LinearColor::new(0.75, 0.375, 0.125);
         let refl_trans = Some(ReflTransEnum::Reflectivity { coef: 0.5 });
-        let properties =
-            LightProperties::new(diffuse.clone(), specular.clone(), refl_trans.clone());
+        let emitted = LinearColor::new(0., 1., 0.);
+        let properties = LightProperties::new(
+            diffuse.clone(),
+            specular.clone(),
+            refl_trans.clone(),
+            emitted.clone(),
+        );
         assert_eq!(
             properties,
             LightProperties {
                 diffuse,
                 specular,
                 refl_trans,
+                emitted,
             }
         )
     }
@@ -96,7 +108,8 @@ mod test {
             LightProperties::new(
                 LinearColor::new(1., 0.5, 0.25),
                 LinearColor::new(0.25, 0.125, 0.75),
-                None
+                None,
+                LinearColor::black(),
             )
         )
     }
@@ -118,7 +131,8 @@ mod test {
                 Some(ReflTransEnum::Transparency {
                     coef: 0.5,
                     index: 1.5
-                })
+                }),
+                LinearColor::black(),
             )
         )
     }
@@ -136,7 +150,27 @@ mod test {
             LightProperties::new(
                 LinearColor::new(1., 0.5, 0.25),
                 LinearColor::new(0.25, 0.125, 0.75),
-                Some(ReflTransEnum::Reflectivity { coef: 0.25 })
+                Some(ReflTransEnum::Reflectivity { coef: 0.25 }),
+                LinearColor::black(),
+            )
+        )
+    }
+
+    #[test]
+    fn deserialization_with_emitted_works() {
+        let yaml = r#"
+            diffuse: {r: 1.0, g: 0.5, b: 0.25}
+            specular: {r: 0.25, g: 0.125, b: 0.75}
+            emitted: {r: 0.25, g: 0.5, b: 1.0}
+        "#;
+        let properties: LightProperties = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(
+            properties,
+            LightProperties::new(
+                LinearColor::new(1., 0.5, 0.25),
+                LinearColor::new(0.25, 0.125, 0.75),
+                None,
+                LinearColor::new(0.25, 0.5, 1.0),
             )
         )
     }

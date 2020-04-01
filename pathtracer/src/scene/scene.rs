@@ -43,6 +43,7 @@ impl Scene {
     ///                     LinearColor::new(1.0, 0.0, 0.0), // diffuse component
     ///                     LinearColor::new(0.0, 0.0, 0.0), // specular component
     ///                     None,
+    ///                     LinearColor::black(), // Emitted light
     ///                 ),
     ///             ).into(),
     ///             UniformTexture::new(LinearColor::new(0.5, 0.5, 0.5)).into(),

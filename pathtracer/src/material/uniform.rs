@@ -24,6 +24,7 @@ impl UniformMaterial {
     ///         LinearColor::new(1.0, 0.0, 0.0), // diffuse component
     ///         LinearColor::new(0.0, 0.0, 0.0), // specular component
     ///         None,
+    ///         LinearColor::black(), // Emitted light
     ///     ),
     /// );
     /// ```
@@ -50,6 +51,7 @@ mod test {
             diffuse: LinearColor::new(0., 0.5, 0.),
             specular: LinearColor::new(1., 1., 1.),
             refl_trans: None,
+            emitted: LinearColor::black(),
         };
         let mat = UniformMaterial::new(properties.clone());
         assert_eq!(mat, UniformMaterial { properties })
@@ -61,6 +63,7 @@ mod test {
             LinearColor::new(0., 0.5, 0.),
             LinearColor::new(1., 1., 1.),
             None,
+            LinearColor::black(),
         );
         let mat = UniformMaterial::new(properties.clone());
         assert_eq!(mat.properties(Point2D::origin()), properties)
@@ -79,7 +82,8 @@ mod test {
             UniformMaterial::new(LightProperties::new(
                 LinearColor::new(1., 0.5, 0.25),
                 LinearColor::new(0.25, 0.125, 0.75),
-                Some(ReflTransEnum::Reflectivity { coef: 0.25 })
+                Some(ReflTransEnum::Reflectivity { coef: 0.25 }),
+                LinearColor::black(),
             ))
         )
     }
