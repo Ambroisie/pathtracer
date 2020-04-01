@@ -9,6 +9,9 @@ pub trait Renderer {
     fn render(&self) -> RgbImage;
 }
 
+mod bidirectional;
+pub use bidirectional::*;
+
 mod pathtrace;
 pub use pathtrace::*;
 
