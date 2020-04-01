@@ -15,7 +15,7 @@ pub use bidirectional::*;
 mod pathtrace;
 pub use pathtrace::*;
 
-mod raytracer;
-pub use raytracer::*;
+mod raytrace;
+pub use raytrace::*;
 
 pub(crate) mod utils;

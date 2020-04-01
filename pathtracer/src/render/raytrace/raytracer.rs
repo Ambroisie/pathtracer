@@ -1,5 +1,5 @@
-use super::utils::*;
-use super::Renderer;
+use super::super::utils::*;
+use super::super::Renderer;
 use crate::scene::{Object, Scene};
 use crate::{
     core::{LightProperties, LinearColor, ReflTransEnum},
