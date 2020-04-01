@@ -1,4 +1,4 @@
-use pathtracer::render::{Pathtracer, Raytracer};
+use pathtracer::render::{BidirectionalPathtracer, Pathtracer, Raytracer};
 use pathtracer::scene::Scene;
 use std::path::PathBuf;
 use std::str;
@@ -10,6 +10,7 @@ arg_enum! {
     enum RenderOption {
         Raytracer,
         Pathtracer,
+        Bidirectional,
     }
 }
 
@@ -40,6 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let image = match options.renderer {
         RenderOption::Raytracer => Raytracer::new(scene).render(),
         RenderOption::Pathtracer => Pathtracer::new(scene).render(),
+        RenderOption::Bidirectional => BidirectionalPathtracer::new(scene).render(),
     };
 
     image.save(options.output)?;
