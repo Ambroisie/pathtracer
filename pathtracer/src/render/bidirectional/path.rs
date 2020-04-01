@@ -10,6 +10,7 @@ pub struct PathPoint {
 }
 
 impl PathPoint {
+    #[allow(unused)]
     pub fn new(
         point: Point,
         incident: Unit<Vector>,
@@ -31,6 +32,7 @@ pub struct Path {
 }
 
 impl Path {
+    #[allow(unused)]
     pub fn new(origin: Point) -> Self {
         Path {
             origin,
@@ -38,6 +40,7 @@ impl Path {
         }
     }
 
+    #[allow(unused)]
     pub fn push_point(&mut self, new_point: PathPoint) {
         self.points.push(new_point)
     }

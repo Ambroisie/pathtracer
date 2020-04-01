@@ -29,7 +29,8 @@ impl BidirectionalPathtracer {
         todo!()
     }
 
-    fn construct_path(&self, point: Point, direction: Unit<Vector>) -> Path {
+    #[allow(unused)]
+    fn construct_path(&self, point: Point, _direction: Unit<Vector>) -> Path {
         let mut res = Path::new(point);
         for _ in 0..self.scene.reflection_limit {
             // FIXME:

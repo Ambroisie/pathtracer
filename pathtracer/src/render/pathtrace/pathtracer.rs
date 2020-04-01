@@ -2,7 +2,7 @@ use super::super::Renderer;
 use crate::scene::Scene;
 use image::RgbImage;
 
-/// Render the [`Scene`] using Bidirectional-Pathtracing
+/// Render the [`Scene`] using Pathtracing
 ///
 /// [`Scene`]: ../scene/scene/struct.Scene.html
 pub struct Pathtracer {
@@ -19,7 +19,7 @@ impl Pathtracer {
         Pathtracer { scene }
     }
 
-    /// Render the [`Scene`] using Bidirectional-Pathtracing.
+    /// Render the [`Scene`] using Pathtracing.
     ///
     /// [`Scene`]: ../scene/scene/struct.Scene.html
     pub fn render(&self) -> RgbImage {
