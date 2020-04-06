@@ -1,4 +1,6 @@
+use crate::core::LinearColor;
 use crate::Vector;
+use image::RgbImage;
 use nalgebra::Unit;
 use rand::prelude::thread_rng;
 use rand::Rng;
@@ -101,6 +103,25 @@ pub fn sample_hemisphere(normal: Vector) -> (Vector, f32) {
     // The probability to have picked the ray is inversely proportional to cosine of the angle with
     // the normal
     (scattered, 1. / scattered.dot(&normal))
+}
+
+pub fn prepare_buffer(total: u32) -> Vec<LinearColor> {
+    let mut ans = Vec::with_capacity(total as usize);
+    for _ in 0..total {
+        ans.push(LinearColor::black());
+    }
+    ans
+}
+
+pub fn buffer_to_image(buffer: Vec<LinearColor>, passes: u32, width: u32, height: u32) -> RgbImage {
+    let mut image = RgbImage::new(width, height);
+
+    for (x, y, pixel) in image.enumerate_pixels_mut() {
+        let i = x as usize + y as usize * width as usize;
+        *pixel = (buffer[i].clone() / passes as f32).into();
+    }
+
+    image
 }
 
 #[cfg(test)]
