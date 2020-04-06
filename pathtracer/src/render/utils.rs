@@ -72,8 +72,7 @@ impl RefractionInfo {
 
 /// Returns a random ray in the hemisphere described by a normal unit-vector, and the probability
 /// to have picked that direction.
-#[allow(unused)] // FIXME: remove once used
-pub fn sample_hemisphere(normal: Vector) -> (Vector, f32) {
+pub fn sample_hemisphere(normal: Unit<Vector>) -> (Unit<Vector>, f32) {
     let mut rng = thread_rng();
     let azimuth = rng.gen::<f32>() * std::f32::consts::PI * 2.;
     // Cosine weighted importance sampling
@@ -94,11 +93,11 @@ pub fn sample_hemisphere(normal: Vector) -> (Vector, f32) {
     let normal_b = normal.cross(&normal_t);
 
     // Perform the matrix calculation by hand...
-    let scattered = Vector::new(
+    let scattered = Unit::new_normalize(Vector::new(
         x * normal_b.x + y * normal.x + z * normal_t.x,
         x * normal_b.y + y * normal.y + z * normal_t.y,
         x * normal_b.z + y * normal.z + z * normal_t.z,
-    );
+    ));
 
     // The probability to have picked the ray is inversely proportional to cosine of the angle with
     // the normal
@@ -133,7 +132,7 @@ mod test {
         // NOTE(Bruno): should use some test-case generation for failure-reproduction purposes...
         let mut rng = thread_rng();
         for _ in 0..100 {
-            let normal = Vector::new(rng.gen(), rng.gen(), rng.gen());
+            let normal = Unit::new_normalize(Vector::new(rng.gen(), rng.gen(), rng.gen()));
             for _ in 0..100 {
                 let (sample, proportion) = sample_hemisphere(normal);
                 let cos_angle = normal.dot(&sample);
