@@ -59,11 +59,12 @@ impl Pathtracer {
     fn pixel_ray(&self, x: f32, y: f32) -> LinearColor {
         let (x, y) = self.scene.camera.film().pixel_ratio(x, y);
         let ray = self.scene.camera.ray_with_ratio(x, y);
-        if let Some(_) = self.cast_ray(ray) {
-            LinearColor::new(1., 1., 1.) // FIXME: calculate real color
-        } else {
-            LinearColor::black()
-        }
+        self.cast_ray(ray).map_or_else(
+            || self.scene.background.clone(),
+            |(t, obj)| {
+                LinearColor::new(1., 1., 1.) // FIXME: calculate real color
+            },
+        )
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {
