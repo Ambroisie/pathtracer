@@ -1,7 +1,11 @@
-use super::super::utils::{buffer_to_image, prepare_buffer};
+use super::super::utils::{buffer_to_image, prepare_buffer, sample_hemisphere};
 use super::super::Renderer;
-use crate::core::LinearColor;
-use crate::scene::{Object, Scene};
+use crate::{
+    core::LinearColor,
+    material::Material,
+    scene::{Object, Scene},
+    shape::Shape,
+};
 use beevee::ray::Ray;
 use image::RgbImage;
 
@@ -61,10 +65,36 @@ impl Pathtracer {
         let ray = self.scene.camera.ray_with_ratio(x, y);
         self.cast_ray(ray).map_or_else(
             || self.scene.background.clone(),
-            |(t, obj)| {
-                LinearColor::new(1., 1., 1.) // FIXME: calculate real color
-            },
+            |(t, obj)| self.radiance(ray, t, obj, self.scene.reflection_limit),
         )
+    }
+
+    fn radiance(&self, ray: Ray, t: f32, obj: &Object, limit: u32) -> LinearColor {
+        // This doesn't look great, but it works ¯\_(ツ)_/¯
+
+        let hit_pos = ray.origin + ray.direction.as_ref() * t;
+        let texel = obj.shape.project_texel(&hit_pos);
+        let properties = obj.material.properties(texel);
+        // If we are the at recursion limit, return the light emitted by the object
+        if limit == 0 {
+            return properties.emitted;
+        };
+        // Get BRDF
+        // FIXME: what about the material's albedo ?
+        let brdf = properties.diffuse;
+        // Pick a new direction
+        let normal = obj.shape.normal(&hit_pos);
+        let (new_direction, weight) = sample_hemisphere(normal);
+        let cos_new_ray = new_direction.dot(&normal);
+        // Calculate the incoming light along the new ray
+        let new_ray = Ray::new(hit_pos + new_direction.as_ref() * 0.001, new_direction);
+        let incoming = self
+            .cast_ray(new_ray)
+            .map_or_else(LinearColor::black, |(t, obj)| {
+                self.radiance(new_ray, t, obj, limit - 1)
+            });
+        // Put it all together
+        properties.emitted + (brdf * incoming * cos_new_ray * weight)
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {
