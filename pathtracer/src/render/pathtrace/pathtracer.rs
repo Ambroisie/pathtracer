@@ -1,3 +1,4 @@
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
 use super::super::utils::{buffer_to_image, sample_hemisphere};
@@ -43,6 +44,7 @@ impl Pathtracer {
         // Ensure at least one round of shots
         let img_buf = (0..self.scene.shot_rays.max(1))
             .into_par_iter()
+            .progress_with(p)
             .map(|_| {
                 let mut buffer: Vec<LinearColor> = Vec::new();
                 buffer.resize_with(total as usize, LinearColor::black);
@@ -53,7 +55,6 @@ impl Pathtracer {
                         buffer[i as usize] += self.pixel_ray(x as f32, y as f32);
                     }
                 }
-                p.inc(1); // Increment the number of passes
 
                 buffer
             })
@@ -71,8 +72,6 @@ impl Pathtracer {
                     acc
                 },
             );
-
-        p.finish();
 
         buffer_to_image(img_buf, self.scene.shot_rays, width, height)
     }
