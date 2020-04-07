@@ -35,6 +35,26 @@ pub(crate) struct Wavefront {
     scale: f32,
 }
 
+fn parse_float3(s: &str) -> Result<[f32; 3], tobj::LoadError> {
+    let mut res = [0.0, 0.0, 0.0];
+    let mut count = 0;
+
+    for (i, s) in s.split_whitespace().enumerate() {
+        if count == 3 {
+            return Err(tobj::LoadError::MaterialParseError);
+        }
+
+        res[i] = s.parse().map_err(|_| tobj::LoadError::MaterialParseError)?;
+        count += 1;
+    }
+
+    if count < 3 {
+        return Err(tobj::LoadError::MaterialParseError);
+    }
+
+    Ok(res)
+}
+
 impl TryFrom<Wavefront> for Mesh {
     type Error = tobj::LoadError;
 
@@ -97,7 +117,15 @@ impl TryFrom<Wavefront> for Mesh {
 
                         let diffuse = LinearColor::from_slice(&mesh_mat.ambient[..]);
                         let specular = LinearColor::from_slice(&mesh_mat.ambient[..]);
-                        let emitted = LinearColor::from_slice(&mesh_mat.emission[..]);
+                        let emitted = mesh_mat
+                            .unknown_param
+                            .get("Ke")
+                            // we want a default if "Ke" isn't provided, but we
+                            // want an error if it is provided but its value
+                            // doesn't parse
+                            .map_or(Ok(LinearColor::black()), |ke| {
+                                parse_float3(ke).map(|vals| LinearColor::from_slice(&vals))
+                            })?;
 
                         let material = UniformMaterial::new(LightProperties::new(
                             diffuse.clone(),
@@ -132,5 +160,23 @@ impl TryFrom<Wavefront> for Mesh {
         }
 
         Ok(Mesh { shapes })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_float3_works() {
+        assert_eq!(parse_float3("1 1 1"), Ok([1., 1., 1.]));
+        assert_eq!(
+            parse_float3("1 1"),
+            Err(tobj::LoadError::MaterialParseError)
+        );
+        assert_eq!(
+            parse_float3("1 1 1 1"),
+            Err(tobj::LoadError::MaterialParseError)
+        );
     }
 }
