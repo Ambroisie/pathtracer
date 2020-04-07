@@ -38,7 +38,7 @@ impl Pathtracer {
         );
         let total = width * height;
 
-        let p = super::super::progress::get_progressbar(self.scene.shot_rays as u64);
+        let p = super::super::progress::get_passes_progressbar(self.scene.shot_rays);
 
         // Ensure at least one round of shots
         let img_buf = (0..self.scene.shot_rays.max(1))

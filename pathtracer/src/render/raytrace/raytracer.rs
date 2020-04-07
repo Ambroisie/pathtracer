@@ -40,7 +40,7 @@ impl Raytracer {
         );
 
         let total = (image.width() * image.height()) as u64;
-        let pb = super::super::progress::get_progressbar(total);
+        let pb = super::super::progress::get_pixels_progressbar(total);
 
         let pixel_func = if self.scene.shot_rays > 0 {
             Self::anti_alias_pixel
