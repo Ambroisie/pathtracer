@@ -97,6 +97,7 @@ impl TryFrom<Wavefront> for Mesh {
 
                         let diffuse = LinearColor::from_slice(&mesh_mat.ambient[..]);
                         let specular = LinearColor::from_slice(&mesh_mat.ambient[..]);
+                        let emitted = LinearColor::from_slice(&mesh_mat.emission[..]);
 
                         let material = UniformMaterial::new(LightProperties::new(
                             diffuse.clone(),
@@ -104,8 +105,7 @@ impl TryFrom<Wavefront> for Mesh {
                             // FIXME: material.dissolve is supposed to be "the alpha term"
                             // Needs translation to our ReflTransEnum
                             None,
-                            // FIXME: parse 'Ke' component for emitted light
-                            LinearColor::black(),
+                            emitted,
                         ));
 
                         // we only handle uniform textures
