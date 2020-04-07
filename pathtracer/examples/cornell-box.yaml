@@ -5,7 +5,7 @@ camera:
   origin: [0.0, 1.0, 0.0]
   forward: [ 0.0, 0.0, 1.0]
   up: [0.0, 1.0, 0.0]
-  fov: 90.0
+  fov: 60.0
   distance_to_image: 1.0
   x: 2160
   y: 2160
@@ -14,12 +14,12 @@ lights:
   ambients:
     - color: {r: 0.1, g: 0.1, b: 0.1}
   points:
-    - position: [-0.5, 1.0, 1.8]
+    - position: [0.0, 1.95, 3.2]
       color: {r: 1.0, g: 1.0, b: 1.0}
 
 meshes:
   # FIXME: make the path relative to the YAML in some way?
   # Easiest solution would be to chdir to the YAML's directory
   - obj_file: "pathtracer/examples/objs/cornell-box.obj"
-    translation: [0.0, 0.0, 1.0]
+    translation: [0.0, 0.0, 2.8]
     rotation: [0, 180, 0]
