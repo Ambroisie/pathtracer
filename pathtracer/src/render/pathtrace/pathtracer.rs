@@ -1,4 +1,6 @@
-use super::super::utils::{buffer_to_image, prepare_buffer, sample_hemisphere};
+use rayon::prelude::*;
+
+use super::super::utils::{buffer_to_image, sample_hemisphere};
 use super::super::Renderer;
 use crate::{
     core::LinearColor,
@@ -35,29 +37,44 @@ impl Pathtracer {
             self.scene.camera.film().height(),
         );
         let total = width * height;
-        let mut buffer = prepare_buffer(total);
 
-        // (total passes, film)
-        // FIXME: use MultiProgress because of rendering issues
-        let (pa, pb) = super::super::progress::get_multiple_progress(total, self.scene.shot_rays);
+        let p = super::super::progress::get_progressbar(self.scene.shot_rays as u64);
 
         // Ensure at least one round of shots
-        for _ in 0..self.scene.shot_rays.max(1) {
-            pb.reset(); // We're rendering the whole film again, reset the pixel counter
-            for y in 0..self.scene.camera.film().height() {
-                for x in 0..self.scene.camera.film().width() {
-                    let i = x + y * self.scene.camera.film().width();
-                    buffer[i as usize] += self.pixel_ray(x as f32, y as f32);
-                    pb.inc(1);
+        let img_buf = (0..self.scene.shot_rays.max(1))
+            .into_par_iter()
+            .map(|_| {
+                let mut buffer: Vec<LinearColor> = Vec::new();
+                buffer.resize_with(total as usize, LinearColor::black);
+
+                for y in 0..self.scene.camera.film().height() {
+                    for x in 0..self.scene.camera.film().width() {
+                        let i = x + y * self.scene.camera.film().width();
+                        buffer[i as usize] += self.pixel_ray(x as f32, y as f32);
+                    }
                 }
-            }
-            pa.inc(1); // Increment the number of passes
-        }
+                p.inc(1); // Increment the number of passes
 
-        pa.finish();
-        pb.finish_and_clear();
+                buffer
+            })
+            .reduce(
+                || {
+                    let mut vec = Vec::new();
+                    vec.resize_with(total as usize, LinearColor::black);
+                    vec
+                },
+                |mut acc, buf| {
+                    for (i, pixel) in buf.into_iter().enumerate() {
+                        acc[i] += pixel;
+                    }
 
-        buffer_to_image(buffer, self.scene.shot_rays, width, height)
+                    acc
+                },
+            );
+
+        p.finish();
+
+        buffer_to_image(img_buf, self.scene.shot_rays, width, height)
     }
 
     fn pixel_ray(&self, x: f32, y: f32) -> LinearColor {

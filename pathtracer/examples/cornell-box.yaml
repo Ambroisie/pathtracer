@@ -1,4 +1,5 @@
 reflection_limit: 5
+shot_rays: 50
 
 camera:
   origin: [0.0, 1.0, 0.0]
