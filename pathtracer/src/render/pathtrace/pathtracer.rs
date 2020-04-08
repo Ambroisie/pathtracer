@@ -33,6 +33,7 @@ impl Pathtracer {
     ///
     /// [`Scene`]: ../scene/scene/struct.Scene.html
     pub fn render(&self) -> RgbImage {
+        let steps = vec![1, 5, 50];
         let (width, height) = (
             self.scene.camera.film().width(),
             self.scene.camera.film().height(),
@@ -42,7 +43,7 @@ impl Pathtracer {
         let p = super::super::progress::get_passes_progressbar(self.scene.shot_rays);
 
         // Ensure at least one round of shots
-        let img_buf = (0..self.scene.shot_rays.max(1))
+        let (img_buf, _) = (0..self.scene.shot_rays.max(1))
             .progress_with(p)
             .map(|_| {
                 let mut buffer: Vec<LinearColor> = Vec::new();
@@ -72,18 +73,26 @@ impl Pathtracer {
                 {
                     let mut vec = Vec::new();
                     vec.resize_with(total as usize, LinearColor::black);
-                    vec
+                    let count = 0usize;
+                    (vec, count)
                 },
-                |mut acc, buf| {
+                |(mut acc, count), buf| {
+                    if steps.contains(&count) {
+                        let image = buffer_to_image(&acc, count as u32, width, height);
+                        image
+                            .save(format!("{}_passes.png", count))
+                            .expect("writing image failed!");
+                    }
+
                     for (i, pixel) in buf.into_iter().enumerate() {
                         acc[i] += pixel;
                     }
 
-                    acc
+                    (acc, count + 1)
                 },
             );
 
-        buffer_to_image(img_buf, self.scene.shot_rays, width, height)
+        buffer_to_image(&img_buf, self.scene.shot_rays, width, height)
     }
 
     fn pixel_ray(&self, x: f32, y: f32) -> LinearColor {

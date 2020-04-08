@@ -104,7 +104,7 @@ pub fn sample_hemisphere(normal: Unit<Vector>) -> (Unit<Vector>, f32) {
     (scattered, 1. / scattered.dot(&normal))
 }
 
-pub fn buffer_to_image(buffer: Vec<LinearColor>, passes: u32, width: u32, height: u32) -> RgbImage {
+pub fn buffer_to_image(buffer: &[LinearColor], passes: u32, width: u32, height: u32) -> RgbImage {
     let mut image = RgbImage::new(width, height);
 
     for (x, y, pixel) in image.enumerate_pixels_mut() {
