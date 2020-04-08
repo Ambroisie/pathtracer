@@ -68,6 +68,11 @@ impl Pathtracer {
                     (vec, count)
                 },
                 |(mut acc, count), buf| {
+                    for (i, pixel) in buf.into_iter().enumerate() {
+                        acc[i] += pixel;
+                    }
+
+                    let count = count + 1; // Because count is 0-indexed
                     if steps.contains(&count) {
                         let image = buffer_to_image(&acc, count as u32, width, height);
                         image
@@ -75,11 +80,7 @@ impl Pathtracer {
                             .expect("writing image failed!");
                     }
 
-                    for (i, pixel) in buf.into_iter().enumerate() {
-                        acc[i] += pixel;
-                    }
-
-                    (acc, count + 1)
+                    (acc, count) // Count has been updated previously
                 },
             );
 
