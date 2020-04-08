@@ -49,25 +49,16 @@ impl Pathtracer {
                 let mut buffer: Vec<LinearColor> = Vec::new();
                 buffer.resize_with(total as usize, LinearColor::black);
 
-                (0..height)
-                    .into_par_iter()
-                    .map(|y| {
-                        let mut row: Vec<LinearColor> = Vec::new();
-                        row.resize_with(width as usize, LinearColor::black);
-
+                buffer
+                    .par_chunks_mut(width as usize)
+                    .enumerate()
+                    .for_each(|(y, row)| {
                         for x in 0..width {
                             row[x as usize] += self.pixel_ray(x as f32, y as f32);
                         }
+                    });
 
-                        row
-                    })
-                    .reduce(
-                        || Vec::new(),
-                        |mut buf, row| {
-                            buf.extend(row);
-                            buf
-                        },
-                    )
+                buffer
             })
             .fold(
                 {
