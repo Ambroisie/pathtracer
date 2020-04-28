@@ -23,3 +23,7 @@ meshes:
   - obj_file: "pathtracer/examples/objs/cornell-box.obj"
     translation: [0.0, 0.0, 2.8]
     rotation: [0, 180, 0]
+
+steps:
+  - 10
+  - 25

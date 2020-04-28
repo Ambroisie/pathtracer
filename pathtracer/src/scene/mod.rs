@@ -26,9 +26,11 @@ pub struct Scene {
     pub(crate) shot_rays: u32,
     pub(crate) reflection_limit: u32,
     pub(crate) diffraction_index: f32,
+    pub(crate) steps: Vec<usize>,
 }
 
 impl Scene {
+    #[allow(clippy::too_many_arguments)]
     /// Creates a new `Scene`.
     ///
     /// # Examples
@@ -62,6 +64,7 @@ impl Scene {
     ///     5,   // amount of rays shot per pixel
     ///     3,   // reflection recursion limit
     ///     0.0, // diffraction index
+    ///     Vec::new(), // steps
     /// );
     /// ```
     pub fn new(
@@ -72,6 +75,7 @@ impl Scene {
         shot_rays: u32,
         reflection_limit: u32,
         diffraction_index: f32,
+        steps: Vec<usize>,
     ) -> Self {
         let bvh = BVH::build(&mut objects);
         Scene {
@@ -83,6 +87,7 @@ impl Scene {
             shot_rays,
             reflection_limit,
             diffraction_index,
+            steps,
         }
     }
 }
@@ -105,6 +110,8 @@ struct SerializedScene {
     reflection_limit: u32,
     #[serde(default = "crate::serialize::default_identity")]
     starting_diffraction: f32,
+    #[serde(default)]
+    steps: Vec<usize>,
 }
 
 impl From<SerializedScene> for Scene {
@@ -125,6 +132,7 @@ impl From<SerializedScene> for Scene {
             scene.shot_rays,
             scene.reflection_limit,
             scene.starting_diffraction,
+            scene.steps,
         )
     }
 }
@@ -153,6 +161,7 @@ mod test {
             5,                    // aliasing limit
             3,                    // reflection recursion limit
             0.0,                  // diffraction index
+            Vec::new(),           // steps
         );
     }
 }

@@ -33,7 +33,6 @@ impl Pathtracer {
     ///
     /// [`Scene`]: ../scene/scene/struct.Scene.html
     pub fn render(&self) -> RgbImage {
-        let steps = vec![1, 5, 50];
         let (width, height) = (
             self.scene.camera.film().width(),
             self.scene.camera.film().height(),
@@ -73,7 +72,7 @@ impl Pathtracer {
                     }
 
                     let count = count + 1; // Because count is 0-indexed
-                    if steps.contains(&count) {
+                    if self.scene.steps.contains(&count) {
                         let image = buffer_to_image(&acc, count as u32, width, height);
                         image
                             .save(format!("{}_passes.png", count))
