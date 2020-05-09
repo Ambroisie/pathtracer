@@ -1,25 +1,15 @@
-use crate::core::LightProperties;
-use crate::{Point, Vector};
-use nalgebra::Unit;
+use crate::core::LinearColor;
+use crate::Point;
 
 pub struct PathPoint {
     pub point: Point,
-    pub pdf: f32,
-    pub properties: LightProperties,
+    pub luminance: LinearColor,
 }
 
 impl PathPoint {
     #[allow(unused)]
-    pub fn new(
-        point: Point,
-        pdf: 32,
-        properties: LightProperties,
-    ) -> Self {
-        PathPoint {
-            point,
-            pdf,
-            properties,
-        }
+    pub fn new(point: Point, luminance: LinearColor) -> Self {
+        PathPoint { point, luminance }
     }
 }
 
