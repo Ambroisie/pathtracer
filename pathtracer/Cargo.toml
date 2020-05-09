@@ -19,24 +19,44 @@ name = "pathtracer"
 path = "src/main.rs"
 
 [dependencies]
+# Our own BVH implementation
 beevee = { path = "../beevee" }
+
+# Macro to implement arithmetic operators automagically
 derive_more = "0.99.3"
+
+# Transform interfaces into enums for better performance than dynamic dispatch
 enum_dispatch = "0.2.1"
+
+# Save an image to PNG
 image = "0.23.0"
+
+# Random implementation, not part of the standard library in Rust
 rand = "0.7"
+
+# Parallelism utility functions
 rayon = "1.3.0"
+
+# YAML deserialization
 serde_yaml = "0.8"
+
+# Command-line argument parsing utilities
 structopt = "0.3"
+
+# OBJ format parser
 tobj = "1.0"
 
+# Fancy terminal progress bar
 [dependencies.indicatif]
 version = "0.14"
 features = ["with_rayon"]
 
+# Linear algebra basic operations and types
 [dependencies.nalgebra]
 version = "0.20.0"
 features = ["serde-serialize"]
 
+# YAML deserialization
 [dependencies.serde]
 version = "1.0"
 features = ["derive"]
