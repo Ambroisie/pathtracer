@@ -9,6 +9,9 @@ use nalgebra::Unit;
 pub trait Light: std::fmt::Debug {
     /// Get the illumination of that light on that point.
     fn illumination(&self, point: &Point) -> LinearColor;
+
+    /// Get the raw luminance of that light
+    fn luminance(&self) -> LinearColor;
 }
 
 /// Represent a light which has an abstract position in the scene being rendered.

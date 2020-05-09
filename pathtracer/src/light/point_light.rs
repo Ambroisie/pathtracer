@@ -36,7 +36,11 @@ impl PointLight {
 impl Light for PointLight {
     fn illumination(&self, point: &Point) -> LinearColor {
         let dist = (self.position - point).norm();
-        self.color.clone() / dist
+        self.luminance() / dist
+    }
+
+    fn luminance(&self) -> LinearColor {
+        self.color.clone()
     }
 }
 

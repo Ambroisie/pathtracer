@@ -54,10 +54,14 @@ impl Light for SpotLight {
         let delt = point - self.position;
         let cos = self.direction.dot(&delt.normalize());
         if cos >= self.cosine_value {
-            self.color.clone() / delt.norm_squared()
+            self.luminance() / delt.norm_squared()
         } else {
             LinearColor::black()
         }
+    }
+
+    fn luminance(&self) -> LinearColor {
+        self.color.clone()
     }
 }
 

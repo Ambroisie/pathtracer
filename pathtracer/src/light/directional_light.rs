@@ -34,6 +34,10 @@ impl DirectionalLight {
 
 impl Light for DirectionalLight {
     fn illumination(&self, _: &Point) -> LinearColor {
+        self.luminance()
+    }
+
+    fn luminance(&self) -> LinearColor {
         self.color.clone()
     }
 }

@@ -27,6 +27,10 @@ impl AmbientLight {
 
 impl Light for AmbientLight {
     fn illumination(&self, _: &Point) -> LinearColor {
+        self.luminance()
+    }
+
+    fn luminance(&self) -> LinearColor {
         self.color.clone()
     }
 }
