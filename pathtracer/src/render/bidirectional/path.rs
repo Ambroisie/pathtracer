@@ -4,8 +4,7 @@ use nalgebra::Unit;
 
 pub struct PathPoint {
     pub point: Point,
-    pub incident: Unit<Vector>,
-    pub normal: Unit<Vector>,
+    pub pdf: f32,
     pub properties: LightProperties,
 }
 
@@ -13,14 +12,12 @@ impl PathPoint {
     #[allow(unused)]
     pub fn new(
         point: Point,
-        incident: Unit<Vector>,
-        normal: Unit<Vector>,
+        pdf: 32,
         properties: LightProperties,
     ) -> Self {
         PathPoint {
             point,
-            incident,
-            normal,
+            pdf,
             properties,
         }
     }
