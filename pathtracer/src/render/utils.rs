@@ -101,7 +101,7 @@ pub fn sample_hemisphere(normal: Unit<Vector>) -> (Unit<Vector>, f32) {
 
     // The probability to have picked the ray is inversely proportional to cosine of the angle with
     // the normal
-    (scattered, 1. / scattered.dot(&normal))
+    (scattered, (1. / scattered.dot(&normal)).min(f32::MAX))
 }
 
 pub fn buffer_to_image(buffer: &[LinearColor], passes: u32, width: u32, height: u32) -> RgbImage {
