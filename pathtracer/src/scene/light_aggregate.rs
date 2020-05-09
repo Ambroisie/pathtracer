@@ -87,6 +87,20 @@ impl LightAggregate {
             .chain(self.points.iter().map(|l| l as &dyn SpatialLight))
             .chain(self.spots.iter().map(|l| l as &dyn SpatialLight))
     }
+
+    /// Returns an iterator over the aggregate's [`SampleLight`]s.
+    ///
+    /// This simply merges iterators over [`SpotLight`], and [`PointLight`].
+    ///
+    /// [`SampleLight`]: ../../light/trait.SampleLight.html
+    /// [`PointLight`]: ../../light/point_light/struct.PointLight.html
+    /// [`Spotight`]: ../../light/spot_light/struct.Spotight.html
+    pub fn sample_lights_iter(&self) -> impl Iterator<Item = &dyn SampleLight> {
+        self.spots
+            .iter()
+            .map(|sl| sl as &dyn SampleLight)
+            .chain(self.points.iter().map(|pl| pl as &dyn SampleLight))
+    }
 }
 
 impl Default for LightAggregate {

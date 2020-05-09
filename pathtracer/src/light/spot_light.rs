@@ -1,4 +1,4 @@
-use super::{Light, SpatialLight};
+use super::{Light, SampleLight, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
 use beevee::ray::Ray;
@@ -47,25 +47,30 @@ impl SpotLight {
             color,
         )
     }
+}
 
-    /// Uniformly sample a ray from the spot-light in a random direction.
-    ///
-    /// # Examles
-    ///
-    ///```
-    /// # use pathtracer::light::SpotLight;
-    /// # use pathtracer::core::color::LinearColor;
-    /// # use pathtracer::{Point, Vector};
-    /// #
-    /// let spot_light = SpotLight::degrees_new(
-    ///     Point::origin(),
-    ///     Vector::x_axis(),
-    ///     90.,
-    ///     LinearColor::new(1.0, 0.0, 1.0),
-    /// );
-    /// let sampled = spot_light.sample_ray();
-    /// ```
-    pub fn sample_ray(&self) -> Ray {
+impl Light for SpotLight {
+    fn illumination(&self, point: &Point) -> LinearColor {
+        let delt = point - self.position;
+        let cos = self.direction.dot(&delt.normalize());
+        if cos >= self.cosine_value {
+            self.color.clone() / delt.norm_squared()
+        } else {
+            LinearColor::black()
+        }
+    }
+}
+
+impl SpatialLight for SpotLight {
+    fn to_source(&self, point: &Point) -> (Unit<Vector>, f32) {
+        let delt = self.position - point;
+        let dist = delt.norm();
+        (Unit::new_normalize(delt), dist)
+    }
+}
+
+impl SampleLight for SpotLight {
+    fn sample_ray(&self) -> Ray {
         let mut rng = rand::thread_rng();
         // Sample cap at Z-pole uniformly
         // See <https://math.stackexchange.com/questions/56784>
@@ -91,26 +96,6 @@ impl SpotLight {
         // We should now be oriented the right way
         debug_assert!(self.direction.dot(&dir) >= self.cosine_value);
         Ray::new(self.position, dir)
-    }
-}
-
-impl Light for SpotLight {
-    fn illumination(&self, point: &Point) -> LinearColor {
-        let delt = point - self.position;
-        let cos = self.direction.dot(&delt.normalize());
-        if cos >= self.cosine_value {
-            self.color.clone() / delt.norm_squared()
-        } else {
-            LinearColor::black()
-        }
-    }
-}
-
-impl SpatialLight for SpotLight {
-    fn to_source(&self, point: &Point) -> (Unit<Vector>, f32) {
-        let delt = self.position - point;
-        let dist = delt.norm();
-        (Unit::new_normalize(delt), dist)
     }
 }
 

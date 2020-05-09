@@ -1,4 +1,4 @@
-use super::{Light, SpatialLight};
+use super::{Light, SampleLight, SpatialLight};
 use crate::core::LinearColor;
 use crate::{Point, Vector};
 use beevee::ray::Ray;
@@ -31,36 +31,6 @@ impl PointLight {
     pub fn new(position: Point, color: LinearColor) -> Self {
         PointLight { position, color }
     }
-
-    /// Uniformly sample a ray from the point-light in a random direction.
-    ///
-    /// # Examles
-    ///
-    ///```
-    /// # use pathtracer::light::PointLight;
-    /// # use pathtracer::core::color::LinearColor;
-    /// # use pathtracer::Point;
-    /// #
-    /// let dir_light = PointLight::new(
-    ///     Point::origin(),
-    ///     LinearColor::new(1.0, 0.0, 1.0),
-    /// );
-    /// let sampled = dir_light.sample_ray();
-    /// ```
-    pub fn sample_ray(&self) -> Ray {
-        let mut rng = rand::thread_rng();
-        // Sample sphere uniformly
-        // See <https://mathworld.wolfram.com/SpherePointPicking.html>
-        let theta = rng.gen_range(0., std::f32::consts::PI * 2.);
-        let y = rng.sample(Uniform::new(-1., 1.)); // Inclusive for the poles
-        let dir = Unit::new_unchecked(Vector::new(
-            // this vector is already of unit length
-            f32::sqrt(1. - y * y) * f32::cos(theta),
-            y,
-            f32::sqrt(1. - y * y) * f32::sin(theta),
-        ));
-        Ray::new(self.position, dir)
-    }
 }
 
 impl Light for PointLight {
@@ -75,6 +45,23 @@ impl SpatialLight for PointLight {
         let delt = self.position - point;
         let dist = delt.norm();
         (Unit::new_normalize(delt), dist)
+    }
+}
+
+impl SampleLight for PointLight {
+    fn sample_ray(&self) -> Ray {
+        let mut rng = rand::thread_rng();
+        // Sample sphere uniformly
+        // See <https://mathworld.wolfram.com/SpherePointPicking.html>
+        let theta = rng.gen_range(0., std::f32::consts::PI * 2.);
+        let y = rng.sample(Uniform::new(-1., 1.)); // Inclusive for the poles
+        let dir = Unit::new_unchecked(Vector::new(
+            // this vector is already of unit length
+            f32::sqrt(1. - y * y) * f32::cos(theta),
+            y,
+            f32::sqrt(1. - y * y) * f32::sin(theta),
+        ));
+        Ray::new(self.position, dir)
     }
 }
 
