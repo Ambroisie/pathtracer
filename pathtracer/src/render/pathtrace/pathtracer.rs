@@ -110,8 +110,7 @@ impl Pathtracer {
         let brdf = properties.diffuse;
         // Pick a new direction
         let normal = obj.shape.normal(&hit_pos);
-        let (new_direction, weight) = sample_hemisphere(normal);
-        let cos_new_ray = new_direction.dot(&normal);
+        let new_direction = sample_hemisphere(normal);
         // Calculate the incoming light along the new ray
         let new_ray = Ray::new(hit_pos + new_direction.as_ref() * 0.001, new_direction);
         let incoming = self
@@ -120,7 +119,8 @@ impl Pathtracer {
                 self.radiance(new_ray, t, obj, limit - 1)
             });
         // Put it all together
-        properties.emitted + (brdf * incoming * cos_new_ray * weight)
+        // The weight of the sample and the cosine of the new ray cancel each other out
+        properties.emitted + (brdf * incoming)
     }
 
     fn cast_ray(&self, ray: Ray) -> Option<(f32, &Object)> {

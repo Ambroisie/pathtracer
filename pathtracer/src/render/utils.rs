@@ -70,9 +70,9 @@ impl RefractionInfo {
     }
 }
 
-/// Returns a random ray in the hemisphere described by a normal unit-vector, and the probability
-/// to have picked that direction.
-pub fn sample_hemisphere(normal: Unit<Vector>) -> (Unit<Vector>, f32) {
+/// Returns a random ray in the hemisphere described by a normal unit-vector
+/// It is cosine-sampled, which is convenient for path-tracing.
+pub fn sample_hemisphere(normal: Unit<Vector>) -> Unit<Vector> {
     let mut rng = thread_rng();
     let azimuth = rng.gen::<f32>() * std::f32::consts::PI * 2.;
     // Cosine weighted importance sampling
@@ -93,15 +93,13 @@ pub fn sample_hemisphere(normal: Unit<Vector>) -> (Unit<Vector>, f32) {
     let normal_b = normal.cross(&normal_t);
 
     // Perform the matrix calculation by hand...
-    let scattered = Unit::new_normalize(Vector::new(
+    // The probability to have picked the ray is inversely proportional to cosine of the angle with
+    // the normal
+    Unit::new_normalize(Vector::new(
         x * normal_b.x + y * normal.x + z * normal_t.x,
         x * normal_b.y + y * normal.y + z * normal_t.y,
         x * normal_b.z + y * normal.z + z * normal_t.z,
-    ));
-
-    // The probability to have picked the ray is inversely proportional to cosine of the angle with
-    // the normal
-    (scattered, (1. / scattered.dot(&normal)).min(f32::MAX))
+    ))
 }
 
 pub fn buffer_to_image(buffer: &[LinearColor], passes: u32, width: u32, height: u32) -> RgbImage {

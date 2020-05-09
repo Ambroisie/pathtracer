@@ -48,7 +48,7 @@ impl BidirectionalPathtracer {
 
                     res.push_point(p);
 
-                    let (new_direction, _) = sample_hemisphere(normal);
+                    let new_direction = sample_hemisphere(normal);
                     // Calculate the incoming light along the new ray
                     origin = hit_pos + new_direction.as_ref() * 0.001;
                     direction = new_direction;
