@@ -8,6 +8,7 @@ use crate::shape::Shape;
 use crate::{Point, Vector};
 use beevee::ray::Ray;
 use image::RgbImage;
+use indicatif::ProgressIterator;
 use nalgebra::Unit;
 use rayon::prelude::*;
 
@@ -38,7 +39,10 @@ impl BidirectionalPathtracer {
         );
         let total = width * height;
 
+        let p = super::super::progress::get_passes_progressbar(self.scene.shot_rays);
+
         let (img_buf, _) = (0..self.scene.shot_rays.max(1))
+            .progress_with(p)
             .map(|_| {
                 let mut buffer: Vec<LinearColor> = Vec::new();
                 buffer.resize_with(total as usize, LinearColor::black);
